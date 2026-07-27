@@ -45,31 +45,33 @@ const analyticsData = [
 
 function RepositoriesTab() {
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-[1fr_100px_60px_80px_80px] gap-4 px-4 py-2 text-xs font-medium text-secondary uppercase tracking-wider border-b border-border">
-        <span>Repository</span>
-        <span>Language</span>
-        <span>PRs</span>
-        <span>Status</span>
-        <span>Last Review</span>
+    <div className="overflow-x-auto">
+      <div className="min-w-[560px] space-y-2">
+        <div className="grid grid-cols-[1fr_110px_70px_90px_90px] gap-4 px-4 py-2 text-xs font-medium text-secondary uppercase tracking-wider border-b border-border">
+          <span>Repository</span>
+          <span>Language</span>
+          <span>PRs</span>
+          <span>Status</span>
+          <span>Last Review</span>
+        </div>
+        {repoData.map((repo, i) => (
+          <motion.div
+            key={repo.name}
+            className="grid grid-cols-[1fr_110px_70px_90px_90px] gap-4 px-4 py-3 rounded-lg hover:bg-surface transition-colors cursor-pointer items-center"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04 }}
+          >
+            <span className="text-sm font-medium text-foreground">{repo.name}</span>
+            <span className="text-xs text-secondary">{repo.lang}</span>
+            <span className="text-xs text-foreground tabular-nums">{repo.prs}</span>
+            <span className={`text-xs font-medium ${repo.status === "healthy" ? "text-success" : "text-warning"}`}>
+              {repo.status === "healthy" ? "Healthy" : "Warning"}
+            </span>
+            <span className="text-xs text-muted">{repo.lastReview}</span>
+          </motion.div>
+        ))}
       </div>
-      {repoData.map((repo, i) => (
-        <motion.div
-          key={repo.name}
-          className="grid grid-cols-[1fr_100px_60px_80px_80px] gap-4 px-4 py-3 rounded-lg hover:bg-surface transition-colors cursor-pointer items-center"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.04 }}
-        >
-          <span className="text-sm font-medium text-foreground">{repo.name}</span>
-          <span className="text-xs text-secondary">{repo.lang}</span>
-          <span className="text-xs text-foreground tabular-nums">{repo.prs}</span>
-          <span className={`text-xs font-medium ${repo.status === "healthy" ? "text-success" : "text-warning"}`}>
-            {repo.status === "healthy" ? "Healthy" : "Warning"}
-          </span>
-          <span className="text-xs text-muted">{repo.lastReview}</span>
-        </motion.div>
-      ))}
     </div>
   );
 }
@@ -242,7 +244,7 @@ export default function ProductPreview() {
   const [activeTab, setActiveTab] = useState<Tab>("repositories");
 
   return (
-    <section className="py-24" id="product-preview">
+    <section className="py-28" id="product-preview">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         <motion.div
           className="mb-12 max-w-2xl"

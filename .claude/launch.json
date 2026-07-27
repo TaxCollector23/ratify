@@ -4,8 +4,9 @@
     {
       "name": "ratify-web",
       "runtimeExecutable": "node_modules/.bin/next",
-      "runtimeArgs": ["dev"],
-      "port": 3000
+      "runtimeArgs": ["dev", "--webpack"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

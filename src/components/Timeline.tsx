@@ -30,7 +30,7 @@ export default function Timeline() {
   const [activeStage, setActiveStage] = useState<number | null>(null);
 
   return (
-    <section className="py-24 overflow-hidden">
+    <section className="py-28 overflow-hidden">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         <motion.div
           className="mb-16 max-w-2xl"

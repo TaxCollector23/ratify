@@ -5,7 +5,7 @@ import DashboardPreview from "./DashboardPreview";
 
 export default function Hero() {
   return (
-    <section className="relative flex items-center pt-32 pb-20">
+    <section className="relative flex items-center pt-36 pb-24">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12 w-full">
         <div className="grid lg:grid-cols-[minmax(0,460px)_1fr] gap-10 lg:gap-16 items-center">
           {/* Left: Text */}

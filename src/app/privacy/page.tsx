@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-32 pb-24">
+      <main className="pt-36 pb-28">
         <div className="mx-auto max-w-[720px] px-8">
           <h1
             className="text-4xl tracking-tight mb-8 font-bold"

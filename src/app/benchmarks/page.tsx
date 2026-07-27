@@ -12,7 +12,7 @@ export default function BenchmarksPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-32 pb-24">
+      <main className="pt-36 pb-28">
         <BenchmarksContent />
       </main>
       <Footer />

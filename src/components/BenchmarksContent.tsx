@@ -100,24 +100,26 @@ export default function BenchmarksContent() {
           Recall: of the known issues in the evaluation set, how many Ratify caught.
         </p>
 
-        <div className="rounded-xl border border-border overflow-hidden">
-          <div className="grid grid-cols-[1fr_100px_100px_80px] gap-4 px-5 py-3 text-xs font-medium text-secondary uppercase tracking-wider bg-surface">
-            <span>Category</span>
-            <span>Precision</span>
-            <span>Recall</span>
-            <span>n</span>
-          </div>
-          {rows.map((row) => (
-            <div
-              key={row.category}
-              className="grid grid-cols-[1fr_100px_100px_80px] gap-4 px-5 py-4 border-t border-border items-center"
-            >
-              <span className="text-sm font-medium text-foreground">{row.category}</span>
-              <span className="text-sm text-foreground tabular-nums">{row.precision}</span>
-              <span className="text-sm text-foreground tabular-nums">{row.recall}</span>
-              <span className="text-sm text-muted tabular-nums">{row.n}</span>
+        <div className="rounded-xl border border-border overflow-x-auto">
+          <div className="min-w-[560px]">
+            <div className="grid grid-cols-[1fr_110px_110px_90px] gap-4 px-5 py-3 text-xs font-medium text-secondary uppercase tracking-wider bg-surface">
+              <span>Category</span>
+              <span>Precision</span>
+              <span>Recall</span>
+              <span>n</span>
             </div>
-          ))}
+            {rows.map((row) => (
+              <div
+                key={row.category}
+                className="grid grid-cols-[1fr_110px_110px_90px] gap-4 px-5 py-4 border-t border-border items-center"
+              >
+                <span className="text-sm font-medium text-foreground">{row.category}</span>
+                <span className="text-sm text-foreground tabular-nums">{row.precision}</span>
+                <span className="text-sm text-foreground tabular-nums">{row.recall}</span>
+                <span className="text-sm text-muted tabular-nums">{row.n}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
     </div>

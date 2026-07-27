@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function TrustSection() {
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         <motion.div
           className="rounded-2xl border border-border px-8 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"

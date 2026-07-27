@@ -37,8 +37,8 @@ export default function Navigation() {
           }`}
         >
           <nav
-            className={`mx-auto flex items-center justify-between transition-all duration-300 ${
-              scrolled ? "px-6 py-3 max-w-7xl" : "px-6 py-5 max-w-7xl"
+            className={`mx-auto flex items-center justify-between transition-all duration-300 max-w-[1440px] ${
+              scrolled ? "px-8 lg:px-12 py-3" : "px-8 lg:px-12 py-5"
             }`}
           >
             {/* Logo */}

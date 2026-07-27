@@ -12,7 +12,7 @@ export default function PricingPage() {
   return (
     <>
       <Navigation />
-      <main className="pt-32 pb-24">
+      <main className="pt-36 pb-28">
         <PricingContent />
       </main>
       <Footer />

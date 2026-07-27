@@ -31,7 +31,7 @@ const features = [
 
 export default function FeatureGrid() {
   return (
-    <section className="py-24" id="product">
+    <section className="py-28" id="product">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         <motion.div
           className="mb-16 max-w-2xl"
