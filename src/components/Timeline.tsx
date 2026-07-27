@@ -1,8 +1,3 @@
-"use client";
-
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
 const stages = [
   {
     label: "Pull Request Opened",
@@ -27,78 +22,26 @@ const stages = [
 ];
 
 export default function Timeline() {
-  const [activeStage, setActiveStage] = useState<number | null>(null);
-
   return (
-    <section className="py-28 overflow-hidden">
+    <section className="py-28 bg-surface border-y border-border">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
-        <motion.div
-          className="mb-16 max-w-2xl"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2
-            className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
+        <div className="max-w-2xl mb-16">
+          <h2 className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold" style={{ fontFamily: "var(--font-heading)" }}>
             From commit to merge
           </h2>
-          <p className="text-lg text-secondary">
-            Hover each stage to inspect what Ratify is doing internally.
-          </p>
-        </motion.div>
+          <p className="text-lg text-secondary">Where Ratify sits in your engineering lifecycle.</p>
+        </div>
 
-        <div className="relative">
-          <div className="absolute top-[24px] left-0 right-0 h-px bg-border hidden md:block" />
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-0">
-            {stages.map((stage, i) => (
-              <motion.div
-                key={stage.label}
-                className="relative flex flex-col items-center text-center group cursor-pointer"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                onMouseEnter={() => setActiveStage(i)}
-                onMouseLeave={() => setActiveStage(null)}
-              >
-                <motion.div
-                  className={`relative z-10 w-12 h-12 rounded-full border flex items-center justify-center mb-4 text-sm font-semibold transition-colors duration-300 ${
-                    activeStage === i
-                      ? "bg-primary border-primary text-white"
-                      : "bg-white border-border text-secondary group-hover:border-primary/40 group-hover:text-primary"
-                  }`}
-                >
-                  {i + 1}
-                </motion.div>
-
-                <span
-                  className={`text-sm font-medium mb-3 transition-colors duration-200 ${
-                    activeStage === i ? "text-foreground" : "text-secondary"
-                  }`}
-                >
-                  {stage.label}
-                </span>
-
-                <AnimatePresence>
-                  {activeStage === i && (
-                    <motion.div
-                      className="hidden md:block text-xs text-secondary leading-relaxed max-w-[170px]"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {stage.detail}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {stages.map((stage, i) => (
+            <div key={stage.label} className="rounded-xl border border-border bg-white p-5 flex flex-col">
+              <div className="w-9 h-9 rounded-full bg-primary/[0.08] text-primary flex items-center justify-center text-sm font-semibold mb-4">
+                {i + 1}
+              </div>
+              <h3 className="text-sm font-semibold text-foreground mb-2">{stage.label}</h3>
+              <p className="text-[13px] text-secondary leading-relaxed">{stage.detail}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

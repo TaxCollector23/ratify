@@ -1,7 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 const plans = [
   {
     name: "Free",
@@ -57,13 +53,8 @@ const plans = [
 
 export default function PricingContent() {
   return (
-    <div className="mx-auto max-w-[1200px] px-8">
-      <motion.div
-        className="max-w-2xl mb-16"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+    <div className="mx-auto max-w-[1200px] px-8 fade-up">
+      <div className="max-w-2xl mb-16">
         <h1
           className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold"
           style={{ fontFamily: "var(--font-heading)" }}
@@ -74,18 +65,15 @@ export default function PricingContent() {
           Start free on a single repository. Move to Plus when you need repository doctrine
           and evidence-backed findings across your whole org.
         </p>
-      </motion.div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan, i) => (
-          <motion.div
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        {plans.map((plan) => (
+          <div
             key={plan.name}
             className={`rounded-2xl border p-8 flex flex-col ${
               plan.highlighted ? "border-primary/30 bg-primary/[0.02]" : "border-border bg-white"
             }`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: i * 0.08 }}
           >
             <h2 className="text-lg font-semibold text-foreground mb-1">{plan.name}</h2>
             <p className="text-sm text-secondary mb-6">{plan.description}</p>
@@ -113,7 +101,7 @@ export default function PricingContent() {
             >
               {plan.cta}
             </a>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

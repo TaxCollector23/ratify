@@ -4,6 +4,8 @@ import TrustSection from "@/components/TrustSection";
 import FeatureGrid from "@/components/FeatureGrid";
 import Timeline from "@/components/Timeline";
 import ProductPreview from "@/components/ProductPreview";
+import Positioning from "@/components/Positioning";
+import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -14,8 +16,10 @@ export default function Home() {
         <Hero />
         <TrustSection />
         <FeatureGrid />
-        <Timeline />
         <ProductPreview />
+        <Timeline />
+        <Positioning />
+        <CTASection />
       </main>
       <Footer />
     </>

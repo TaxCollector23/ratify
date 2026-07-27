@@ -1,7 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 const features = [
   {
     index: "01",
@@ -33,37 +29,22 @@ export default function FeatureGrid() {
   return (
     <section className="py-28" id="product">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
-        <motion.div
-          className="mb-16 max-w-2xl"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2
-            className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
+        <div className="max-w-2xl mb-16">
+          <h2 className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold" style={{ fontFamily: "var(--font-heading)" }}>
             Built for engineering rigor
           </h2>
           <p className="text-lg text-secondary">
-            Every feature designed to enforce standards without slowing teams down.
+            Four capabilities that enforce your standards without slowing teams down.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-12">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-            >
-              <div className="text-sm font-medium text-muted mb-4 tabular-nums">{feature.index}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+          {features.map((feature) => (
+            <div key={feature.title} className="border-t border-border pt-6">
+              <div className="text-sm font-semibold text-primary mb-4 tabular-nums">{feature.index}</div>
               <h3 className="text-lg font-semibold text-foreground mb-3">{feature.title}</h3>
               <p className="text-sm text-secondary leading-relaxed">{feature.description}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
