@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import TrustSection from "@/components/TrustSection";
+import ProblemSection from "@/components/ProblemSection";
 import FeatureGrid from "@/components/FeatureGrid";
 import Timeline from "@/components/Timeline";
 import ProductPreview from "@/components/ProductPreview";
@@ -15,6 +16,7 @@ export default function Home() {
       <main>
         <Hero />
         <TrustSection />
+        <ProblemSection />
         <FeatureGrid />
         <ProductPreview />
         <Timeline />

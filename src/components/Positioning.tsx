@@ -14,7 +14,7 @@ const is = [
 
 export default function Positioning() {
   return (
-    <section className="py-28">
+    <section className="py-32">
       <div className="mx-auto max-w-[1440px] px-8 lg:px-12">
         <div className="max-w-2xl mb-16">
           <h2 className="text-4xl sm:text-5xl tracking-tight mb-4 font-bold" style={{ fontFamily: "var(--font-heading)" }}>
