@@ -1,0 +1,37 @@
+{
+  "name": "@ratify/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@ratify/shared": "workspace:*",
+    "@ratify/db": "workspace:*",
+    "@ratify/queue": "workspace:*",
+    "@ratify/parser": "workspace:*",
+    "@ratify/graph": "workspace:*",
+    "@ratify/policy-engine": "workspace:*",
+    "@ratify/doctrine": "workspace:*",
+    "@ratify/retrieval": "workspace:*",
+    "@ratify/llm": "workspace:*",
+    "@ratify/github": "workspace:*",
+    "@ratify/storage": "workspace:*",
+    "@ratify/observability": "workspace:*",
+    "@ratify/repo-sync": "workspace:*",
+    "@ratify/history-miner": "workspace:*",
+    "@ratify/evidence-generator": "workspace:*",
+    "drizzle-orm": "^0.36.1",
+    "bullmq": "^5.28.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.9.0"
+  }
+}

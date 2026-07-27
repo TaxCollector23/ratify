@@ -1,0 +1,32 @@
+{
+  "name": "@ratify/api-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@ratify/shared": "workspace:*",
+    "@ratify/db": "workspace:*",
+    "@ratify/queue": "workspace:*",
+    "@ratify/doctrine": "workspace:*",
+    "@ratify/observability": "workspace:*",
+    "fastify": "^5.1.0",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^5.2.0",
+    "@fastify/cors": "^10.0.1",
+    "fastify-type-provider-zod": "^4.0.2",
+    "drizzle-orm": "^0.36.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.9.0"
+  }
+}

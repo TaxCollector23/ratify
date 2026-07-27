@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/db" },
+    { "path": "../../packages/github" },
+    { "path": "../../packages/queue" },
+    { "path": "../../packages/storage" },
+    { "path": "../../packages/observability" }
+  ],
+  "include": ["src"]
+}

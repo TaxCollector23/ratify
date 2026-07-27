@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ratify Docs</title>
+<link rel="icon" href="https://ratify-app.vercel.app/favicon.svg" />
+<style>
+  :root {
+    --background: #ffffff;
+    --foreground: #111111;
+    --primary: #2563eb;
+    --secondary: #5f6368;
+    --border: #ececec;
+    --surface: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header a.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--foreground);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  header .logo {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--primary);
+  }
+  header nav a {
+    color: var(--secondary);
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 24px;
+  }
+  header nav a:hover { color: var(--foreground); }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 64px 32px 120px;
+  }
+  h1 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 44px;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+  h2 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    margin: 56px 0 16px;
+    letter-spacing: -0.01em;
+  }
+  p { color: var(--secondary); margin: 0 0 16px; font-size: 16px; }
+  code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 13px;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  ul { color: var(--secondary); }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card p { margin: 0; font-size: 14px; }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px;
+    text-align: center;
+    color: var(--secondary);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="./"><span class="logo"></span> Ratify Docs</a>
+  <nav>
+    <a href="https://ratify-app.vercel.app">Home</a>
+    <a href="https://github.com/taxcollector23/ratify">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Documentation</h1>
+  <p>Ratify turns your repository's engineering standards into executable doctrine, and
+  evaluates every pull request against that doctrine before human review begins.</p>
+
+  <h2>How it works</h2>
+  <div class="card">
+    <h3>1. Repository indexing</h3>
+    <p>When Ratify is installed, it clones the repository, parses structure and symbols,
+    builds a dependency graph, and mines merged PRs, review comments, and docs for precedent.</p>
+  </div>
+  <div class="card">
+    <h3>2. Doctrine inference</h3>
+    <p>Recurring patterns in review feedback and repository history are turned into
+    structured, scored doctrine rules — distinguishing hard rules from soft norms.</p>
+  </div>
+  <div class="card">
+    <h3>3. Pull request analysis</h3>
+    <p>On every PR, deterministic policy checks run first. Only after context is assembled
+    does Ratify call a model — to reason over evidence, not to invent it.</p>
+  </div>
+  <div class="card">
+    <h3>4. Evidence-backed findings</h3>
+    <p>Every finding ships with severity, confidence, supporting evidence, and precedent —
+    so reviewers evaluate Ratify's reasoning instead of taking a verdict on faith.</p>
+  </div>
+
+  <h2>Installing the GitHub App</h2>
+  <p>Ratify installs as a GitHub App scoped to the repositories you choose. It requests
+  read access to code, pull requests, and checks, and write access to checks and PR
+  comments only.</p>
+  <pre><code>1. Go to github.com/apps/ratify (coming soon)
+2. Select the organization and repositories to install on
+3. Ratify begins indexing automatically</code></pre>
+
+  <h2>Local development (backend)</h2>
+  <p>The backend is a pnpm monorepo. See the
+    <a href="https://github.com/taxcollector23/ratify/tree/main/backend">backend README</a>
+    in the repository for the full architecture, package layout, and setup instructions.</p>
+  <pre><code>cp backend/.env.example backend/.env
+docker compose -f backend/docker-compose.yml up --build</code></pre>
+
+  <h2>Status</h2>
+  <p>Ratify is pre-launch. This documentation will expand as the GitHub App, API, and
+  self-hosting guides are finalized.</p>
+</main>
+
+<footer>&copy; 2026 Ratify</footer>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/db" },
+    { "path": "../../packages/queue" },
+    { "path": "../../packages/parser" },
+    { "path": "../../packages/graph" },
+    { "path": "../../packages/policy-engine" },
+    { "path": "../../packages/doctrine" },
+    { "path": "../../packages/retrieval" },
+    { "path": "../../packages/llm" },
+    { "path": "../../packages/github" },
+    { "path": "../../packages/storage" },
+    { "path": "../../packages/observability" },
+    { "path": "../../packages/repo-sync" },
+    { "path": "../../packages/history-miner" },
+    { "path": "../../packages/evidence-generator" }
+  ],
+  "include": ["src"]
+}

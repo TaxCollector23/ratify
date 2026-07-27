@@ -1,0 +1,26 @@
+{
+  "name": "ratify-backend",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* run build && pnpm -r --filter=./apps/* run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "lint": "pnpm -r run lint",
+    "dev:webhook-handler": "pnpm --filter @ratify/webhook-handler dev",
+    "dev:api-server": "pnpm --filter @ratify/api-server dev",
+    "dev:worker": "pnpm --filter @ratify/worker dev",
+    "db:generate": "pnpm --filter @ratify/db run generate",
+    "db:migrate": "pnpm --filter @ratify/db run migrate"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4",
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2"
+  },
+  "packageManager": "pnpm@9.12.3"
+}
