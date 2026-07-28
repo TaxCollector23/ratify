@@ -1,6 +1,6 @@
 export function buildAppManifest(baseUrl: string) {
   return {
-    name: "Ratify",
+    name: "Ratify Reviews",
     url: baseUrl,
     hook_attributes: {
       url: `${baseUrl}/api/webhooks/github`,
