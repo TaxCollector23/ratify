@@ -17,6 +17,7 @@ import { organizations, installations, repositories, pullRequests, reviewSession
 import { eq } from "drizzle-orm";
 import { getInstallationToken } from "@/lib/github/app-auth";
 import { getPullRequestFiles, createCheckRun, createIssueComment } from "@/lib/github/api";
+import { compareCommits, fetchCommitFiles, fetchPreviousDeployment } from "@/lib/github/deployments";
 import { runPolicyChecks } from "@/lib/review/policy-checks";
 import { runLlmReasoning } from "@/lib/review/llm-reason";
 
@@ -51,10 +52,8 @@ export async function POST(req: NextRequest) {
       installationJustCreated = true;
     } else if (eventType === "pull_request" && ["opened", "synchronize", "reopened"].includes(payload.action)) {
       await handlePullRequest(payload);
-    } else if (eventType === "deployment" || eventType === "deployment_status") {
-      // Deployment gating hook. Real behavior wired in a follow-up; for now
-      // record the event so we don't lose it.
-      // (No-op — this event stays in webhook_events for audit only.)
+    } else if (eventType === "deployment" && payload.deployment) {
+      await handleDeployment(payload);
     }
 
     if (installationJustCreated && payload.installation?.id) {
@@ -287,4 +286,113 @@ async function handlePullRequest(payload: GhPayload) {
       completedAt: new Date(),
     })
     .where(eq(reviewSessions.id, session.id));
+}
+
+/**
+ * Deployment gating: when a GitHub Deployment is created, run the same
+ * doctrine + policy pipeline against the deployment's target SHA and post
+ * a check_run to it. If a previous successful deployment to the same
+ * environment exists, review the delta between the two; otherwise review
+ * the target commit itself.
+ */
+async function handleDeployment(payload: GhPayload) {
+  const deployment = payload.deployment;
+  const ghRepo = payload.repository;
+  const ghInstallationId = payload.installation?.id;
+  if (!deployment || !ghRepo || !ghInstallationId) return;
+
+  const [installRow] = await db
+    .select()
+    .from(installations)
+    .where(eq(installations.githubInstallationId, ghInstallationId));
+  if (!installRow) return;
+
+  // Ensure the repo record exists (installations added later may skip it).
+  let [repoRow] = await db.select().from(repositories).where(eq(repositories.githubRepoId, ghRepo.id));
+  if (!repoRow) {
+    [repoRow] = await db
+      .insert(repositories)
+      .values({
+        installationId: installRow.id,
+        githubRepoId: ghRepo.id,
+        owner: ghRepo.owner.login,
+        name: ghRepo.name,
+        fullName: ghRepo.full_name,
+      })
+      .returning();
+  }
+
+  const token = await getInstallationToken(ghInstallationId);
+  const owner = ghRepo.owner.login;
+  const repo = ghRepo.name;
+  const sha: string = deployment.sha;
+  const environment: string = deployment.environment ?? "unknown";
+
+  // Find files-changed: prefer delta against the last successful deployment.
+  let files: Array<{ filename: string; status: string; additions: number; deletions: number; changes: number; patch?: string }> = [];
+  let deltaSource: string;
+  try {
+    const previous = await fetchPreviousDeployment(token, owner, repo, environment, deployment.id);
+    if (previous) {
+      files = await compareCommits(token, owner, repo, previous.sha, sha);
+      deltaSource = `${previous.sha.slice(0, 7)}..${sha.slice(0, 7)}`;
+    } else {
+      const commit = await fetchCommitFiles(token, owner, repo, sha);
+      files = commit.files;
+      deltaSource = `commit ${sha.slice(0, 7)}`;
+    }
+  } catch (err) {
+    console.error("Deployment diff fetch failed:", err);
+    // Post a neutral check even when we can't fetch the diff — better than silence.
+    await createCheckRun(token, owner, repo, sha, {
+      conclusion: "neutral",
+      title: "Ratify: diff unavailable",
+      summary: `Could not compute the deployment diff (${String(err).slice(0, 200)}).`,
+      text: "Ratify skipped this deployment review because it could not fetch the file diff from GitHub.",
+    });
+    return;
+  }
+
+  const policyFindings = runPolicyChecks(files);
+
+  const rulesForRepo = await db
+    .select({
+      ruleText: doctrineRules.ruleText,
+      category: doctrineRules.category,
+      strength: doctrineRules.strength,
+    })
+    .from(doctrineRules)
+    .where(eq(doctrineRules.installationId, installRow.id));
+
+  const llmResult = await runLlmReasoning(
+    `Deployment to ${environment} at ${sha.slice(0, 7)}`,
+    files,
+    policyFindings,
+    rulesForRepo,
+  );
+
+  const allFindings = [...policyFindings, ...(llmResult?.findings ?? [])];
+  const highCount = allFindings.filter((f) => f.severity === "high").length;
+  const mediumCount = allFindings.filter((f) => f.severity === "medium").length;
+  const riskScore = Math.max(0, 100 - highCount * 30 - mediumCount * 10);
+  const conclusion = highCount > 0 ? "failure" : allFindings.length > 0 ? "neutral" : "success";
+
+  const summary =
+    llmResult?.summary ??
+    (allFindings.length === 0
+      ? "No issues found for this deployment."
+      : `${allFindings.length} finding(s) against repository doctrine.`);
+
+  const text =
+    `**Deployment target:** \`${environment}\`\n**Delta:** ${deltaSource}\n**Files changed:** ${files.length}\n\n` +
+    (allFindings.length > 0
+      ? allFindings.map((f) => `**${f.title}** (${f.severity})\n${f.description}`).join("\n\n")
+      : "All deterministic policy checks passed and no doctrine violations detected.");
+
+  await createCheckRun(token, owner, repo, sha, {
+    conclusion,
+    title: `Deployment · ${allFindings.length} finding(s) · risk ${riskScore}%`,
+    summary,
+    text,
+  });
 }

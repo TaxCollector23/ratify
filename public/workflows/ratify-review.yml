@@ -1,0 +1,53 @@
+# Ratify deployment review.
+#
+# Drop this file at .github/workflows/ratify-review.yml in any repository
+# that has Ratify installed. On every push to `main`, it creates a GitHub
+# Deployment for the "production" environment. Ratify subscribes to
+# deployment events, runs its doctrine + policy pipeline against the
+# target SHA, and posts a check run to that commit that will block the
+# deployment if a high-severity finding is present.
+#
+# Requires no external secrets — GITHUB_TOKEN's default permissions cover
+# creating deployments as long as the two `permissions` lines below stay in.
+
+name: Ratify Review
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment to review"
+        required: true
+        default: "production"
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  request-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub Deployment (triggers Ratify)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const env = context.payload.inputs?.environment || 'production';
+            const result = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: env,
+              // auto_merge false + required_contexts [] prevents GitHub from
+              // rejecting the deployment because CI checks aren't done yet.
+              auto_merge: false,
+              required_contexts: [],
+              description: 'Ratify review request',
+              transient_environment: false,
+              production_environment: env === 'production',
+            });
+            core.setOutput('deployment_id', result.data.id);
+            core.info(`Created deployment ${result.data.id} for ${env}. Ratify will post a check run to ${context.sha}.`);
