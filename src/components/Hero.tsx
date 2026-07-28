@@ -30,10 +30,10 @@ export default function Hero() {
 
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href="/pricing"
+                href="/install"
                 className="inline-flex items-center justify-center text-sm font-medium text-white bg-primary px-6 py-3 rounded-xl transition-colors duration-200 hover:bg-primary-hover"
               >
-                Get Started
+                Install on GitHub
               </a>
               <a
                 href="#product"

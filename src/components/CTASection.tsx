@@ -15,18 +15,16 @@ export default function CTASection() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a
-              href="/pricing"
+              href="/install"
               className="inline-flex items-center justify-center text-sm font-medium text-foreground bg-white px-6 py-3 rounded-xl transition-colors duration-200 hover:bg-white/90"
             >
-              Get Started
+              Install on GitHub
             </a>
             <a
-              href="https://github.com/taxcollector23/ratify"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/pricing"
               className="inline-flex items-center justify-center text-sm font-medium text-white bg-white/10 border border-white/20 px-6 py-3 rounded-xl transition-colors duration-200 hover:bg-white/20"
             >
-              View on GitHub
+              See pricing
             </a>
           </div>
         </div>

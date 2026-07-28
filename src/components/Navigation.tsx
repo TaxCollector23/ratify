@@ -99,10 +99,10 @@ export default function Navigation() {
                 GitHub
               </a>
               <a
-                href="/pricing"
+                href="/install"
                 className="text-sm font-medium text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-lg transition-all duration-200 hover:shadow-md hover:shadow-primary/10"
               >
-                Get Started
+                Install
               </a>
             </div>
 
@@ -159,10 +159,10 @@ export default function Navigation() {
           ))}
           <div className="h-px bg-border my-2" />
           <a
-            href="/pricing"
+            href="/install"
             className="inline-flex items-center justify-center text-lg font-medium text-white bg-primary px-6 py-3 rounded-lg w-fit"
           >
-            Get Started
+            Install
           </a>
         </div>
       </motion.div>

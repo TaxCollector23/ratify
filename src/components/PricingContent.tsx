@@ -12,7 +12,7 @@ const plans = [
       "Community support",
     ],
     cta: "Get started",
-    href: "https://github.com/taxcollector23/ratify",
+    href: "/install",
     highlighted: false,
   },
   {
@@ -29,7 +29,7 @@ const plans = [
       "Priority email support",
     ],
     cta: "Get started",
-    href: "https://github.com/taxcollector23/ratify",
+    href: "/install",
     highlighted: true,
   },
   {
