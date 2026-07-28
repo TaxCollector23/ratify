@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Ratify - Engineering Standards, Made Executable",
   description: "Ratify continuously reviews every pull request against your team's engineering doctrine before it reaches production.",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.svg",
   },
 };
 

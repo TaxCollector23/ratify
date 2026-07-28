@@ -26,7 +26,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/favicon.png" alt="Ratify" width={24} height={24} className="rounded-md" />
+              <img src="/favicon.svg" alt="Ratify" width={24} height={24} className="rounded-md" />
               <span className="text-sm font-semibold text-foreground">Ratify</span>
             </div>
             <p className="text-xs text-secondary leading-relaxed max-w-[220px]">

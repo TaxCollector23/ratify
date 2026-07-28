@@ -124,7 +124,7 @@ export default function Navigation() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/favicon.png" alt="Ratify" width={28} height={28} className="rounded-md" />
+              <img src="/favicon.svg" alt="Ratify" width={28} height={28} className="rounded-md" />
               <span className="text-lg font-semibold tracking-tight">Ratify</span>
             </Link>
 
