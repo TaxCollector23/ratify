@@ -13,6 +13,6 @@ export function buildAppManifest(baseUrl: string) {
       checks: "write",
       metadata: "read",
     },
-    default_events: ["pull_request", "installation", "installation_repositories"],
+    default_events: ["pull_request"],
   };
 }
