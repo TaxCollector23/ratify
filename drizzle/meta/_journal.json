@@ -15,6 +15,13 @@
       "when": 1785258899357,
       "tag": "0001_mean_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785260222199,
+      "tag": "0002_regular_nocturne",
+      "breakpoints": true
     }
   ]
 }

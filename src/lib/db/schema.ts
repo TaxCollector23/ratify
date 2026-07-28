@@ -78,6 +78,40 @@ export const findings = pgTable("findings", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Doctrine rules mined from a repository's history. Each rule is a
+// structured, confidence-scored assertion about how this repository is
+// meant to be built — inferred from patterns in past review comments,
+// merged PRs, and any explicit docs. This is Ratify's moat: the same
+// rules never apply across repositories unless explicitly copied.
+export const doctrineRules = pgTable("doctrine_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  installationId: uuid("installation_id").notNull().references(() => installations.id),
+  repositoryId: uuid("repository_id").references(() => repositories.id),
+  ruleKey: text("rule_key").notNull(),
+  ruleText: text("rule_text").notNull(),
+  category: text("category").notNull(), // e.g. "testing" | "architecture" | "documentation" | "dependencies"
+  strength: text("strength").notNull().default("soft-norm"), // "hard-rule" | "soft-norm" | "likely-preference"
+  confidence: real("confidence").notNull().default(0.5),
+  discoveredFrom: text("discovered_from").notNull().default("history"), // "history" | "manual"
+  supportingEvidence: jsonb("supporting_evidence"), // list of PR numbers / comment snippets that produced this
+  enabled: text("enabled").notNull().default("true"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Per-installation mining state. Prevents concurrent mining runs and
+// lets the dashboard show progress ("mining doctrine…") without polling
+// the LLM endpoint directly.
+export const doctrineMiningRuns = pgTable("doctrine_mining_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  installationId: uuid("installation_id").notNull().references(() => installations.id),
+  status: text("status").notNull().default("running"), // "running" | "completed" | "failed"
+  rulesFound: integer("rules_found").notNull().default(0),
+  prsAnalyzed: integer("prs_analyzed").notNull().default(0),
+  error: text("error"),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
 export const webhookEvents = pgTable("webhook_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   githubDeliveryId: text("github_delivery_id").notNull().unique(),

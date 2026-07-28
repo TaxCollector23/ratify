@@ -15,11 +15,18 @@ export interface LlmReasoningResult {
   findings: LlmFinding[];
 }
 
+export interface DoctrineRuleForPrompt {
+  ruleText: string;
+  category: string;
+  strength: string;
+}
+
 /** Returns null (rather than throwing) when no OPENROUTER_API_KEY is configured, so the pipeline degrades gracefully. */
 export async function runLlmReasoning(
   prTitle: string,
   files: PrFile[],
   policyFindings: PolicyFinding[],
+  doctrineRules: DoctrineRuleForPrompt[] = [],
 ): Promise<LlmReasoningResult | null> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return null;
@@ -29,9 +36,17 @@ export async function runLlmReasoning(
     .map((f) => `--- ${f.filename} (+${f.additions}/-${f.deletions}) ---\n${(f.patch ?? "").slice(0, 1500)}`)
     .join("\n\n");
 
+  const doctrineSection =
+    doctrineRules.length > 0
+      ? `Repository doctrine (mined from this repo's own review history — evaluate the diff against these first):\n${doctrineRules
+          .slice(0, 20)
+          .map((r) => `- [${r.strength} · ${r.category}] ${r.ruleText}`)
+          .join("\n")}\n\n`
+      : "";
+
   const prompt = `You are a senior engineer reviewing a pull request titled "${prTitle}".
 
-Deterministic checks already found:
+${doctrineSection}Deterministic checks already found:
 ${policyFindings.length > 0 ? policyFindings.map((f) => `- ${f.title}: ${f.description}`).join("\n") : "(none)"}
 
 Diff:
@@ -44,7 +59,7 @@ Respond with ONLY a JSON object of this exact shape, no prose outside the JSON:
     { "ruleKey": "short-kebab-key", "title": "short title", "description": "one sentence", "filePath": "optional", "severity": "low|medium|high", "confidence": 0.0-1.0 }
   ]
 }
-Only include findings that are NOT already covered by the deterministic checks above. If there is nothing new to add, return an empty findings array.`;
+Only include findings that are NOT already covered by the deterministic checks above. Flag violations of any repository doctrine listed above. If there is nothing new to add, return an empty findings array.`;
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",

@@ -3,7 +3,9 @@
 // event type and action. Typing every subfield is not worth the noise for a
 // v1; the shapes we actually read are validated by presence checks at use.
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { verifyWebhookSignature } from "@/lib/github/signature";
+import { signInstallationId } from "@/lib/doctrine/mining-signer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +13,7 @@ export const dynamic = "force-dynamic";
 type GhPayload = any;
 
 import { db } from "@/lib/db/client";
-import { organizations, installations, repositories, pullRequests, reviewSessions, findings, webhookEvents, users } from "@/lib/db/schema";
+import { organizations, installations, repositories, pullRequests, reviewSessions, findings, webhookEvents, users, doctrineRules } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getInstallationToken } from "@/lib/github/app-auth";
 import { getPullRequestFiles, createCheckRun, createIssueComment } from "@/lib/github/api";
@@ -29,6 +31,7 @@ export async function POST(req: NextRequest) {
   const deliveryId = req.headers.get("x-github-delivery") ?? crypto.randomUUID();
   const eventType = req.headers.get("x-github-event") ?? "unknown";
   const payload = JSON.parse(rawBody);
+  const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
 
   const existing = await db.query.webhookEvents.findFirst({ where: eq(webhookEvents.githubDeliveryId, deliveryId) });
   if (existing) {
@@ -37,15 +40,51 @@ export async function POST(req: NextRequest) {
   await db.insert(webhookEvents).values({ githubDeliveryId: deliveryId, eventType });
 
   try {
+    let installationJustCreated = false;
+    let installationRowIdForMining: string | null = null;
+
     if (eventType === "installation" && (payload.action === "created" || payload.action === "new_permissions_accepted")) {
       await handleInstallationCreated(payload);
-    } else if (eventType === "installation_repositories" || (eventType === "installation" && payload.action === "created")) {
+      installationJustCreated = true;
+    } else if (eventType === "installation_repositories") {
       await handleRepositoriesAdded(payload);
+      installationJustCreated = true;
     } else if (eventType === "pull_request" && ["opened", "synchronize", "reopened"].includes(payload.action)) {
       await handlePullRequest(payload);
+    } else if (eventType === "deployment" || eventType === "deployment_status") {
+      // Deployment gating hook. Real behavior wired in a follow-up; for now
+      // record the event so we don't lose it.
+      // (No-op — this event stays in webhook_events for audit only.)
+    }
+
+    if (installationJustCreated && payload.installation?.id) {
+      const [installRow] = await db
+        .select({ id: installations.id })
+        .from(installations)
+        .where(eq(installations.githubInstallationId, payload.installation.id));
+      installationRowIdForMining = installRow?.id ?? null;
     }
 
     await db.update(webhookEvents).set({ processedAt: new Date() }).where(eq(webhookEvents.githubDeliveryId, deliveryId));
+
+    // Kick off doctrine mining AFTER we've responded to GitHub — otherwise
+    // we'd blow past the 10-second webhook budget.
+    if (installationRowIdForMining) {
+      const idForMining: string = installationRowIdForMining;
+      after(async () => {
+        try {
+          const sig = signInstallationId(idForMining);
+          await fetch(`${baseUrl}/api/mine-doctrine`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ installationId: idForMining, signature: sig }),
+          });
+        } catch (err) {
+          console.error("Failed to trigger doctrine mining:", err);
+        }
+      });
+    }
+
     return NextResponse.json({ status: "ok" });
   } catch (err) {
     console.error("Webhook processing failed:", err);
@@ -176,7 +215,19 @@ async function handlePullRequest(payload: GhPayload) {
   const files = await getPullRequestFiles(token, ghRepo.owner.login, ghRepo.name, pr.number);
 
   const policyFindings = runPolicyChecks(files);
-  const llmResult = await runLlmReasoning(pr.title, files, policyFindings);
+
+  // Pull doctrine rules for this repo (fall back to installation-wide) so the
+  // reviewer reasons against this repo's actual standards, not generic advice.
+  const rulesForRepo = await db
+    .select({
+      ruleText: doctrineRules.ruleText,
+      category: doctrineRules.category,
+      strength: doctrineRules.strength,
+    })
+    .from(doctrineRules)
+    .where(eq(doctrineRules.installationId, installRow.id));
+
+  const llmResult = await runLlmReasoning(pr.title, files, policyFindings, rulesForRepo);
 
   const allFindings = [...policyFindings, ...(llmResult?.findings ?? [])];
   for (const f of allFindings) {
