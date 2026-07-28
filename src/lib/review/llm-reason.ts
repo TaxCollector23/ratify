@@ -61,37 +61,68 @@ Respond with ONLY a JSON object of this exact shape, no prose outside the JSON:
 }
 Only include findings that are NOT already covered by the deterministic checks above. Flag violations of any repository doctrine listed above. If there is nothing new to add, return an empty findings array.`;
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
-    }),
-  });
-
-  if (!res.ok) {
-    console.error("OpenRouter call failed:", res.status, await res.text());
+  const model = process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free";
+  let res: Response;
+  try {
+    res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        // OpenRouter uses these to attribute traffic to the source app.
+        "HTTP-Referer": process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app",
+        "X-Title": "Ratify",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+      }),
+    });
+  } catch (err) {
+    console.error(`[llm-reason] network error calling OpenRouter (model=${model}):`, err);
     return null;
   }
 
-  const body = await res.json();
-  const content: string = body?.choices?.[0]?.message?.content ?? "";
+  const responseText = await res.text();
+
+  if (!res.ok) {
+    console.error(`[llm-reason] OpenRouter ${res.status} for model=${model}: ${responseText.slice(0, 400)}`);
+    return null;
+  }
+
+  let body: { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } };
+  try {
+    body = JSON.parse(responseText);
+  } catch {
+    console.error(`[llm-reason] non-JSON response from OpenRouter: ${responseText.slice(0, 200)}`);
+    return null;
+  }
+
+  if (body.error?.message) {
+    console.error(`[llm-reason] OpenRouter reported error: ${body.error.message}`);
+    return null;
+  }
+
+  const content = body.choices?.[0]?.message?.content ?? "";
+  if (!content) {
+    console.error(`[llm-reason] empty content from OpenRouter (model=${model})`);
+    return null;
+  }
 
   try {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-    const parsed = JSON.parse(jsonMatch[0]) as { summary: string; findings: Omit<LlmFinding, "source">[] };
+    if (!jsonMatch) {
+      console.error(`[llm-reason] no JSON object found in model output (first 200 chars): ${content.slice(0, 200)}`);
+      return null;
+    }
+    const parsed = JSON.parse(jsonMatch[0]) as { summary?: string; findings?: Omit<LlmFinding, "source">[] };
     return {
-      summary: parsed.summary,
+      summary: parsed.summary ?? "",
       findings: (parsed.findings ?? []).map((f) => ({ ...f, source: "llm-reasoner" as const })),
     };
   } catch (err) {
-    console.error("Failed to parse LLM response:", err, content);
+    console.error(`[llm-reason] JSON parse failed:`, err, `content: ${content.slice(0, 200)}`);
     return null;
   }
 }
