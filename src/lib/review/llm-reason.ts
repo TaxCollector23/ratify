@@ -59,9 +59,15 @@ Respond with ONLY a JSON object of this exact shape, no prose outside the JSON:
     { "ruleKey": "short-kebab-key", "title": "short title", "description": "one sentence", "filePath": "optional", "severity": "low|medium|high", "confidence": 0.0-1.0 }
   ]
 }
+
+Severity grading (be strict):
+- HIGH: removed/disabled authentication or authorization; secrets/API keys/tokens committed; SQL injection, XSS, or path-traversal risk; deletion of payment/billing safeguards; removal of an existing test on sensitive code; obvious data-loss risk in a migration.
+- MEDIUM: architectural violation (e.g. handler talking directly to the database when the repo uses a service layer); new external dependency without a stated rationale; API contract change without a corresponding doc/CHANGELOG update; introduction of a race condition or memory leak.
+- LOW: TODO/debug leftovers; minor style/naming; missing JSDoc on new exports.
+
 Only include findings that are NOT already covered by the deterministic checks above. Flag violations of any repository doctrine listed above. If there is nothing new to add, return an empty findings array.`;
 
-  const model = process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free";
+  const model = process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b:free";
   let res: Response;
   try {
     res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
