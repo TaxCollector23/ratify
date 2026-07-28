@@ -25,11 +25,8 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7.5L5.5 11L12 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/favicon.png" alt="Ratify" width={24} height={24} className="rounded-md" />
               <span className="text-sm font-semibold text-foreground">Ratify</span>
             </div>
             <p className="text-xs text-secondary leading-relaxed max-w-[220px]">

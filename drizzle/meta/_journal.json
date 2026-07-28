@@ -8,6 +8,13 @@
       "when": 1785197990444,
       "tag": "0000_condemned_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785258899357,
+      "tag": "0001_mean_norman_osborn",
+      "breakpoints": true
     }
   ]
 }

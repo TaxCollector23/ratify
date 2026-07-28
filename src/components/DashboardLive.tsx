@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/context";
 
 interface Session {
   id: string;
@@ -18,29 +20,63 @@ interface Session {
 export default function DashboardLive() {
   const [sessions, setSessions] = useState<Session[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { state } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
+    if (state === null) return;
+    if (!state.authed) {
+      router.replace("/signin?next=/dashboard");
+      return;
+    }
     fetch("/api/reviews")
-      .then((r) => r.json())
-      .then((d) => setSessions(d.sessions ?? []))
-      .catch(() => setError("Failed to load review sessions."));
-  }, []);
+      .then(async (r) => {
+        if (r.status === 401) {
+          router.replace("/signin?next=/dashboard");
+          return null;
+        }
+        if (!r.ok) {
+          setError("Failed to load review sessions. Please refresh and try again.");
+          return null;
+        }
+        return r.json();
+      })
+      .then((d) => {
+        if (d) setSessions(d.sessions ?? []);
+      })
+      .catch(() => setError("Network error loading review sessions."));
+  }, [state, router]);
 
-  if (error) {
-    return <p className="text-sm text-danger">{error}</p>;
-  }
-
-  if (sessions === null) {
+  if (state === null || (state.authed && sessions === null && !error)) {
     return <p className="text-sm text-secondary">Loading review sessions…</p>;
   }
 
-  if (sessions.length === 0) {
+  if (error) {
+    return (
+      <div className="rounded-lg border border-danger/30 bg-danger/[0.04] p-4 text-sm text-danger">{error}</div>
+    );
+  }
+
+  if (state.authed && !state.hasInstallation) {
+    return (
+      <div className="rounded-2xl border border-border p-10 text-center">
+        <p className="text-secondary mb-2">You haven&apos;t installed Ratify on a repository yet.</p>
+        <a
+          href="/install"
+          className="inline-flex items-center justify-center text-sm font-medium text-white bg-primary hover:bg-primary-hover px-5 py-2.5 rounded-lg mt-2"
+        >
+          Install on GitHub
+        </a>
+      </div>
+    );
+  }
+
+  if (!sessions || sessions.length === 0) {
     return (
       <div className="rounded-2xl border border-border p-10 text-center">
         <p className="text-secondary mb-2">No reviews yet.</p>
         <p className="text-sm text-muted">
-          Once Ratify is installed on a repository, opening a pull request there will show up
-          here in real time.
+          Open a pull request on a connected repository — it&apos;ll show up here in real time.
         </p>
       </div>
     );

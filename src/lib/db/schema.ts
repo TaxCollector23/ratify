@@ -1,5 +1,15 @@
 import { pgTable, text, integer, timestamp, uuid, jsonb, real } from "drizzle-orm/pg-core";
 
+// Ratify user account. Firebase Auth owns the credentials; we store the
+// Firebase UID plus the GitHub handle they typed at sign-up, which is how
+// we match them to a GitHub App installation.
+export const users = pgTable("users", {
+  firebaseUid: text("firebase_uid").primaryKey(),
+  email: text("email").notNull(),
+  githubLogin: text("github_login").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   githubLogin: text("github_login").notNull().unique(),
@@ -11,6 +21,9 @@ export const installations = pgTable("installations", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id),
   githubInstallationId: integer("github_installation_id").notNull().unique(),
+  // Firebase UID of the Ratify user who owns/installed this. Filled in when
+  // the installation's github_login matches a signed-up user's github_login.
+  ownerFirebaseUid: text("owner_firebase_uid"),
   suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

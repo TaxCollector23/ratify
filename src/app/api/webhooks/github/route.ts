@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 type GhPayload = any;
 
 import { db } from "@/lib/db/client";
-import { organizations, installations, repositories, pullRequests, reviewSessions, findings, webhookEvents } from "@/lib/db/schema";
+import { organizations, installations, repositories, pullRequests, reviewSessions, findings, webhookEvents, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getInstallationToken } from "@/lib/github/app-auth";
 import { getPullRequestFiles, createCheckRun, createIssueComment } from "@/lib/github/api";
@@ -62,10 +62,21 @@ async function handleInstallationCreated(payload: GhPayload) {
     .onConflictDoUpdate({ target: organizations.githubLogin, set: { githubAccountId: account.id } })
     .returning();
 
+  // If a Ratify user has already signed up with this github_login, link the
+  // installation to them; otherwise it stays unlinked until they sign up.
+  const [matchingUser] = await db.select().from(users).where(eq(users.githubLogin, account.login));
+
   await db
     .insert(installations)
-    .values({ organizationId: org.id, githubInstallationId: payload.installation.id })
-    .onConflictDoNothing({ target: installations.githubInstallationId });
+    .values({
+      organizationId: org.id,
+      githubInstallationId: payload.installation.id,
+      ownerFirebaseUid: matchingUser?.firebaseUid ?? null,
+    })
+    .onConflictDoUpdate({
+      target: installations.githubInstallationId,
+      set: { ownerFirebaseUid: matchingUser?.firebaseUid ?? null },
+    });
 
   const repos: any[] = payload.repositories ?? [];
   if (repos.length > 0) {

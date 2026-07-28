@@ -24,8 +24,8 @@ export default function Hero() {
             </h1>
 
             <p className="text-lg text-secondary leading-relaxed mb-8 max-w-md">
-              Ratify continuously reviews every pull request against your team&apos;s
-              engineering doctrine — before it ever reaches a human reviewer.
+              Ratify holds every pull request, check, and release to your team&apos;s
+              engineering doctrine — before it ever reaches production.
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
