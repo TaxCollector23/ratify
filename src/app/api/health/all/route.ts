@@ -41,43 +41,46 @@ export async function GET() {
     checks.postgres = { ok: false, error: String(err) };
   }
 
-  // 2. OpenRouter LLM
+  // 2. OpenRouter LLM — walks the same fallback chain the review pipeline
+  // uses, so this reports OK as long as ANY model in the chain works. That
+  // matches the actual capability the pipeline has.
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b:free";
+  const primary = process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b:free";
+  const chain = Array.from(new Set([primary, "google/gemma-4-26b-a4b-it:free", "openai/gpt-oss-20b:free"]));
   if (!apiKey) {
     checks.openrouter = { ok: false, error: "OPENROUTER_API_KEY not set" };
   } else {
-    try {
+    const tries: Array<{ model: string; ok: boolean; error?: string; ms: number }> = [];
+    let winner: { model: string; reply: string; ms: number } | null = null;
+    for (const m of chain) {
       const t0 = Date.now();
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app",
-          "X-Title": "Ratify",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: "user", content: "reply with only OK" }],
-          temperature: 0,
-          max_tokens: 10,
-        }),
-      });
-      const body = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } };
-      if (!res.ok || body.error) {
-        checks.openrouter = { ok: false, model, error: body.error?.message ?? `HTTP ${res.status}`, roundTripMs: Date.now() - t0 };
-      } else {
-        checks.openrouter = {
-          ok: true,
-          model,
-          roundTripMs: Date.now() - t0,
-          reply: (body.choices?.[0]?.message?.content ?? "").slice(0, 80),
-        };
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app",
+            "X-Title": "Ratify",
+          },
+          body: JSON.stringify({ model: m, messages: [{ role: "user", content: "reply with only OK" }], temperature: 0, max_tokens: 10 }),
+        });
+        const body = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } };
+        const ms = Date.now() - t0;
+        if (!res.ok || body.error) {
+          tries.push({ model: m, ok: false, error: body.error?.message ?? `HTTP ${res.status}`, ms });
+          continue;
+        }
+        winner = { model: m, reply: (body.choices?.[0]?.message?.content ?? "").slice(0, 80), ms };
+        tries.push({ model: m, ok: true, ms });
+        break;
+      } catch (err) {
+        tries.push({ model: m, ok: false, error: String(err), ms: Date.now() - t0 });
       }
-    } catch (err) {
-      checks.openrouter = { ok: false, model, error: String(err) };
     }
+    checks.openrouter = winner
+      ? { ok: true, chosenModel: winner.model, roundTripMs: winner.ms, reply: winner.reply, chainAttempts: tries }
+      : { ok: false, error: "All models in fallback chain failed.", chainAttempts: tries };
   }
 
   // 3. GitHub App auth

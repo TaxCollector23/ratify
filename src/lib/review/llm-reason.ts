@@ -67,53 +67,69 @@ Severity grading (be strict):
 
 Only include findings that are NOT already covered by the deterministic checks above. Flag violations of any repository doctrine listed above. If there is nothing new to add, return an empty findings array.`;
 
-  const model = process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b:free";
-  let res: Response;
-  try {
-    res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        // OpenRouter uses these to attribute traffic to the source app.
-        "HTTP-Referer": process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app",
-        "X-Title": "Ratify",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-      }),
-    });
-  } catch (err) {
-    console.error(`[llm-reason] network error calling OpenRouter (model=${model}):`, err);
-    return null;
+  // Fallback chain: primary (large/best) → secondary (broadly-available) →
+  // tertiary. All are currently-free on OpenRouter. If the primary is rate
+  // limited (NVIDIA Nemotron caps at ~32 concurrent workers) we transparently
+  // fall through instead of returning null. Env var overrides just the head.
+  const primary = process.env.OPENROUTER_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b:free";
+  const chain = Array.from(new Set([primary, "google/gemma-4-26b-a4b-it:free", "openai/gpt-oss-20b:free"]));
+
+  const callOnce = async (model: string): Promise<{ content: string; model: string } | { error: string; retriable: boolean }> => {
+    let res: Response;
+    try {
+      res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app",
+          "X-Title": "Ratify",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.2,
+        }),
+      });
+    } catch (err) {
+      return { error: `network: ${String(err)}`, retriable: true };
+    }
+
+    const text = await res.text();
+    if (!res.ok) return { error: `HTTP ${res.status}: ${text.slice(0, 200)}`, retriable: res.status >= 500 || res.status === 429 };
+
+    let parsed: { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } };
+    try { parsed = JSON.parse(text); }
+    catch { return { error: `non-JSON: ${text.slice(0, 120)}`, retriable: false }; }
+
+    if (parsed.error?.message) {
+      const msg = parsed.error.message;
+      const retriable = /rate limit|resource ?exhaust|worker.*(local|limit)|temporarily|try again/i.test(msg);
+      return { error: msg, retriable };
+    }
+
+    const c = parsed.choices?.[0]?.message?.content ?? "";
+    if (!c) return { error: "empty content", retriable: true };
+    return { content: c, model };
+  };
+
+  let winner: { content: string; model: string } | null = null;
+  for (const m of chain) {
+    const result = await callOnce(m);
+    if ("content" in result) {
+      winner = result;
+      break;
+    }
+    console.error(`[llm-reason] model=${m} failed: ${result.error}${result.retriable ? " — falling through" : " — non-retriable, still trying next"}`);
   }
 
-  const responseText = await res.text();
-
-  if (!res.ok) {
-    console.error(`[llm-reason] OpenRouter ${res.status} for model=${model}: ${responseText.slice(0, 400)}`);
+  if (!winner) {
+    console.error(`[llm-reason] every model in fallback chain failed`);
     return null;
   }
-
-  let body: { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } };
-  try {
-    body = JSON.parse(responseText);
-  } catch {
-    console.error(`[llm-reason] non-JSON response from OpenRouter: ${responseText.slice(0, 200)}`);
-    return null;
-  }
-
-  if (body.error?.message) {
-    console.error(`[llm-reason] OpenRouter reported error: ${body.error.message}`);
-    return null;
-  }
-
-  const content = body.choices?.[0]?.message?.content ?? "";
-  if (!content) {
-    console.error(`[llm-reason] empty content from OpenRouter (model=${model})`);
-    return null;
+  const { content, model: usedModel } = winner;
+  if (usedModel !== primary) {
+    console.warn(`[llm-reason] primary=${primary} unavailable; used fallback=${usedModel}`);
   }
 
   try {
