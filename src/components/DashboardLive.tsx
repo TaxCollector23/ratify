@@ -85,7 +85,11 @@ export default function DashboardLive() {
   return (
     <div className="space-y-3">
       {sessions.map((s) => (
-        <div key={s.id} className="rounded-xl border border-border bg-white p-5">
+        <a
+          key={s.id}
+          href={`/dashboard/${s.id}`}
+          className="block rounded-xl border border-border bg-white p-5 hover:border-foreground/20 transition-colors"
+        >
           <div className="flex items-center justify-between gap-4 mb-2">
             <div className="min-w-0">
               <div className="text-xs text-muted mb-1">{s.repoFullName}</div>
@@ -110,8 +114,9 @@ export default function DashboardLive() {
             <span>by {s.prAuthor}</span>
             {s.riskScore !== null && <span>Risk: {s.riskScore}%</span>}
             <span>{s.filesChanged} files changed</span>
+            <span className="ml-auto text-primary">View timeline →</span>
           </div>
-        </div>
+        </a>
       ))}
     </div>
   );

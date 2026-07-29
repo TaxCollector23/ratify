@@ -14,10 +14,11 @@ type GhPayload = any;
 
 import { db } from "@/lib/db/client";
 import { organizations, installations, repositories, pullRequests, reviewSessions, findings, webhookEvents, users, doctrineRules } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getInstallationToken } from "@/lib/github/app-auth";
 import { getPullRequestFiles, createCheckRun, createIssueComment } from "@/lib/github/api";
 import { compareCommits, fetchCommitFiles, fetchPreviousDeployment } from "@/lib/github/deployments";
+import { recordStage, timeStage } from "@/lib/review/timeline";
 import { runPolicyChecks } from "@/lib/review/policy-checks";
 import { runLlmReasoning } from "@/lib/review/llm-reason";
 
@@ -205,15 +206,53 @@ async function handlePullRequest(payload: GhPayload) {
       .returning();
   }
 
-  const [session] = await db
+  // Idempotency: the same PR at the same head SHA should never produce two
+  // parallel review sessions. GitHub retries webhooks aggressively (up to
+  // ~8 times over 24h if we don't respond fast enough), and Vercel can
+  // occasionally cold-start slow enough to trigger that. onConflict on the
+  // unique (pull_request_id, head_sha) index turns the second-onwards
+  // deliveries into no-ops.
+  const inserted = await db
     .insert(reviewSessions)
-    .values({ pullRequestId: prRow.id, status: "running" })
+    .values({ pullRequestId: prRow.id, headSha: pr.head.sha, status: "running" })
+    .onConflictDoNothing({ target: [reviewSessions.pullRequestId, reviewSessions.headSha] })
     .returning();
 
-  const token = await getInstallationToken(ghInstallationId);
-  const files = await getPullRequestFiles(token, ghRepo.owner.login, ghRepo.name, pr.number);
+  if (inserted.length === 0) {
+    // Duplicate delivery for this exact (PR, SHA). Record the audit event
+    // against the existing session and bail — the original run is either in
+    // flight or already finished.
+    const [existing] = await db
+      .select()
+      .from(reviewSessions)
+      .where(and(eq(reviewSessions.pullRequestId, prRow.id), eq(reviewSessions.headSha, pr.head.sha)));
+    if (existing) {
+      await recordStage(existing.id, "skipped_duplicate", { reason: "duplicate webhook for same PR + head SHA" });
+    }
+    return;
+  }
 
-  const policyFindings = runPolicyChecks(files);
+  const session = inserted[0];
+  await recordStage(session.id, "webhook_received", {
+    prNumber: pr.number,
+    headSha: pr.head.sha,
+    action: payload.action,
+  });
+
+  const token = await getInstallationToken(ghInstallationId);
+  const files = await timeStage(
+    session.id,
+    "context_retrieved",
+    () => getPullRequestFiles(token, ghRepo.owner.login, ghRepo.name, pr.number),
+    (result) => ({ fileCount: result.length }),
+  );
+
+  const policyFindings = await timeStage(
+    session.id,
+    "policy_checks",
+    async () => runPolicyChecks(files),
+    (result) => ({ findingCount: result.length, ruleKeys: result.map((f) => f.ruleKey) }),
+  );
 
   // Pull doctrine rules for this repo (fall back to installation-wide) so the
   // reviewer reasons against this repo's actual standards, not generic advice.
@@ -226,7 +265,16 @@ async function handlePullRequest(payload: GhPayload) {
     .from(doctrineRules)
     .where(eq(doctrineRules.installationId, installRow.id));
 
-  const llmResult = await runLlmReasoning(pr.title, files, policyFindings, rulesForRepo);
+  const llmResult = await timeStage(
+    session.id,
+    "llm_call",
+    () => runLlmReasoning(pr.title, files, policyFindings, rulesForRepo),
+    (result) => ({
+      modelReturnedFindings: result?.findings.length ?? 0,
+      hadResult: result !== null,
+      doctrineRulesUsed: rulesForRepo.length,
+    }),
+  );
 
   const allFindings = [...policyFindings, ...(llmResult?.findings ?? [])];
   for (const f of allFindings) {
@@ -253,25 +301,44 @@ async function handlePullRequest(payload: GhPayload) {
       ? "No issues found by deterministic checks."
       : `${allFindings.length} finding(s) from deterministic checks.`);
 
-  const checkText = allFindings.length > 0
-    ? allFindings.map((f) => `**${f.title}** (${f.severity})\n${f.description}`).join("\n\n")
-    : "All deterministic policy checks passed.";
-
-  const checkRunId = await createCheckRun(token, ghRepo.owner.login, ghRepo.name, pr.head.sha, {
+  await recordStage(session.id, "evidence_generated", {
+    findingCount: allFindings.length,
+    highCount,
+    mediumCount: allFindings.filter((f) => f.severity === "medium").length,
+    lowCount: allFindings.filter((f) => f.severity === "low").length,
+    riskScore,
     conclusion,
-    title: `${allFindings.length} finding(s) · risk ${riskScore}%`,
-    summary: summaryText,
-    text: checkText,
   });
+
+  const checkText = allFindings.length > 0
+    ? allFindings.map((f) => `**${severityBadge(f.severity)} ${f.title}** _(source: ${f.source}, confidence ${(f.confidence * 100).toFixed(0)}%)_\n${f.description}`).join("\n\n")
+    : "All deterministic policy checks passed and no doctrine violations detected.";
+
+  const publicUrl = process.env.RATIFY_PUBLIC_URL ?? "https://ratify-zeta-dusky.vercel.app";
+  const dashboardLink = `${publicUrl}/dashboard`;
+
+  const checkRunId = await timeStage(
+    session.id,
+    "published",
+    () => createCheckRun(token, ghRepo.owner.login, ghRepo.name, pr.head.sha, {
+      conclusion,
+      title: `${allFindings.length} finding(s) · risk ${riskScore}%`,
+      summary: summaryText,
+      text: `${checkText}\n\n---\n[Open the full review in Ratify →](${dashboardLink})`,
+    }),
+    (id) => ({ checkRunId: id }),
+  );
 
   if (allFindings.length > 0) {
     const top = allFindings.slice(0, 3);
-    const comment = [
-      `**Ratify review** — risk score ${riskScore}%`,
+    const comment = buildRichPrComment({
       summaryText,
-      "",
-      ...top.map((f) => `- **${f.title}** (${f.severity}): ${f.description}`),
-    ].join("\n");
+      riskScore,
+      allFindings,
+      top,
+      dashboardLink,
+      doctrineRulesUsed: rulesForRepo.length,
+    });
     await createIssueComment(token, ghRepo.owner.login, ghRepo.name, pr.number, comment);
   }
 
@@ -286,6 +353,48 @@ async function handlePullRequest(payload: GhPayload) {
       completedAt: new Date(),
     })
     .where(eq(reviewSessions.id, session.id));
+}
+
+function severityBadge(severity: string): string {
+  if (severity === "high") return "🔴";
+  if (severity === "medium") return "🟠";
+  return "🟡";
+}
+
+function buildRichPrComment(opts: {
+  summaryText: string;
+  riskScore: number;
+  allFindings: Array<{ title: string; severity: string; description: string; source: string; confidence: number; filePath?: string | null }>;
+  top: typeof opts.allFindings;
+  dashboardLink: string;
+  doctrineRulesUsed: number;
+}): string {
+  const { summaryText, riskScore, allFindings, top, dashboardLink, doctrineRulesUsed } = opts;
+  const highN = allFindings.filter((f) => f.severity === "high").length;
+  const medN = allFindings.filter((f) => f.severity === "medium").length;
+  const lowN = allFindings.filter((f) => f.severity === "low").length;
+
+  const header = `## <img src="https://ratify-zeta-dusky.vercel.app/favicon.svg" width="18" align="center"/> Ratify review
+
+**Risk score: ${riskScore}%** · ${allFindings.length} finding${allFindings.length === 1 ? "" : "s"} ` +
+    `(${highN} high, ${medN} medium, ${lowN} low)` +
+    (doctrineRulesUsed > 0 ? ` · evaluated against ${doctrineRulesUsed} repository doctrine rule${doctrineRulesUsed === 1 ? "" : "s"}` : "");
+
+  const body = summaryText;
+
+  const findingsBlock = top
+    .map((f) => {
+      const src = f.source === "policy-engine" ? "deterministic" : "reasoning";
+      const path = f.filePath ? ` — \`${f.filePath}\`` : "";
+      return `<details><summary><b>${severityBadge(f.severity)} ${f.title}</b> · ${src}${path}</summary>\n\n${f.description}\n\n</details>`;
+    })
+    .join("\n\n");
+
+  const footer =
+    (allFindings.length > 3 ? `\n\n_Showing top 3 of ${allFindings.length} findings._` : "") +
+    `\n\n[Open the full review](${dashboardLink}) · React 👍/👎 on any finding to teach Ratify what your team considers a real issue.`;
+
+  return `${header}\n\n> ${body}\n\n${findingsBlock}${footer}`;
 }
 
 /**

@@ -63,12 +63,12 @@ function AuthCta() {
         >
           Sign out
         </button>
-        <a
+        <Link
           href="/dashboard"
           className="text-sm font-medium text-white bg-primary hover:bg-primary-hover px-4 py-2 rounded-lg transition-all duration-200 hover:shadow-md hover:shadow-primary/10"
         >
           Dashboard
-        </a>
+        </Link>
       </>
     );
   }
@@ -201,12 +201,12 @@ export default function Navigation() {
           ))}
           <div className="h-px bg-border my-2" />
           {state === null ? null : state.authed && state.hasInstallation ? (
-            <a
+            <Link
               href="/dashboard"
               className="inline-flex items-center justify-center text-lg font-medium text-white bg-primary px-6 py-3 rounded-lg w-fit"
             >
               Dashboard
-            </a>
+            </Link>
           ) : state.authed ? (
             <a
               href="/install"

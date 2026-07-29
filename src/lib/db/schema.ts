@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uuid, jsonb, real } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, uuid, jsonb, real, uniqueIndex } from "drizzle-orm/pg-core";
 
 // Ratify user account. Firebase Auth owns the credentials; we store the
 // Firebase UID plus the GitHub handle they typed at sign-up, which is how
@@ -52,17 +52,62 @@ export const pullRequests = pgTable("pull_requests", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const reviewSessions = pgTable("review_sessions", {
+export const reviewSessions = pgTable(
+  "review_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pullRequestId: uuid("pull_request_id").notNull().references(() => pullRequests.id),
+    // Head SHA at the moment this review started. Idempotency key alongside
+    // pullRequestId — the same PR at the same SHA should never produce two
+    // parallel review sessions, no matter how many webhook retries fire.
+    headSha: text("head_sha").notNull().default(""),
+    status: text("status").notNull().default("running"), // running | completed | failed
+    riskScore: integer("risk_score"),
+    filesChanged: integer("files_changed").notNull().default(0),
+    summary: text("summary"),
+    checkRunId: integer("check_run_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (t) => ({
+    prShaUnique: uniqueIndex("review_sessions_pr_sha_unique").on(t.pullRequestId, t.headSha),
+  }),
+);
+
+// Fine-grained event log for each review session. Every stage of the
+// pipeline emits a timestamped row here so we can (a) render a transparent
+// timeline in the app, (b) debug why a review was slow or missed
+// something, (c) audit the decisions the pipeline made and the raw model
+// input/output that produced them. This is a big part of what makes
+// Ratify not-a-blind-LLM-wrapper: every finding is traceable to the
+// evidence it came from.
+export const reviewEvents = pgTable("review_events", {
   id: uuid("id").primaryKey().defaultRandom(),
-  pullRequestId: uuid("pull_request_id").notNull().references(() => pullRequests.id),
-  status: text("status").notNull().default("running"), // running | completed | failed
-  riskScore: integer("risk_score"),
-  filesChanged: integer("files_changed").notNull().default(0),
-  summary: text("summary"),
-  checkRunId: integer("check_run_id"),
+  reviewSessionId: uuid("review_session_id").notNull().references(() => reviewSessions.id, { onDelete: "cascade" }),
+  stage: text("stage").notNull(), // webhook_received | policy_checks | context_retrieved | llm_call | evidence_generated | published | error
+  durationMs: integer("duration_ms"),
+  detail: jsonb("detail"), // stage-specific payload (raw LLM prompt/response, retrieved doctrine ids, etc.)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  completedAt: timestamp("completed_at", { withTimezone: true }),
 });
+
+// User feedback on individual findings — the primary signal that closes
+// the loop between "Ratify said X" and "reviewers agreed / disagreed".
+// Feeds back into confidence scoring for future findings that cite the
+// same rule.
+export const findingFeedback = pgTable(
+  "finding_feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    findingId: uuid("finding_id").notNull().references(() => findings.id, { onDelete: "cascade" }),
+    firebaseUid: text("firebase_uid").notNull(),
+    verdict: text("verdict").notNull(), // accepted | false_positive | needs_context | exception
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    perUserUnique: uniqueIndex("finding_feedback_per_user_unique").on(t.findingId, t.firebaseUid),
+  }),
+);
 
 export const findings = pgTable("findings", {
   id: uuid("id").primaryKey().defaultRandom(),
