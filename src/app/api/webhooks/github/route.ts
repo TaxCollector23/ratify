@@ -295,11 +295,22 @@ async function handlePullRequest(payload: GhPayload) {
   const riskScore = Math.max(0, 100 - highCount * 30 - allFindings.filter((f) => f.severity === "medium").length * 10);
   const conclusion = highCount > 0 ? "failure" : allFindings.length > 0 ? "neutral" : "success";
 
-  const summaryText =
+  // Compose the summary with the panel verdict header at the top so
+  // reviewers immediately see whether the 3-LLM consensus said allow,
+  // warn, require_approval, or block — not just the model's prose.
+  const verdictHeader = llmResult?.verdict
+    ? `Panel verdict: **${llmResult.verdict.replace(/_/g, " ")}**` +
+      (typeof llmResult.consensusConfidence === "number"
+        ? ` (${Math.round(llmResult.consensusConfidence * 100)}% confidence)`
+        : "") +
+      ".\n\n"
+    : "";
+  const baseSummary =
     llmResult?.summary ??
     (allFindings.length === 0
       ? "No issues found by deterministic checks."
       : `${allFindings.length} finding(s) from deterministic checks.`);
+  const summaryText = `${verdictHeader}${baseSummary}`;
 
   await recordStage(session.id, "evidence_generated", {
     findingCount: allFindings.length,
@@ -308,6 +319,19 @@ async function handlePullRequest(payload: GhPayload) {
     lowCount: allFindings.filter((f) => f.severity === "low").length,
     riskScore,
     conclusion,
+    // Panel telemetry: persisted with the timeline event so ReviewDetail
+    // can render the per-model votes without hitting the LLMs again.
+    panelVerdict: llmResult?.verdict ?? null,
+    panelConfidence: llmResult?.consensusConfidence ?? null,
+    panelVotes:
+      llmResult?.votes?.map((v) => ({
+        model: v.model,
+        provider: v.provider,
+        decision: v.decision,
+        confidence: v.confidence,
+        reasoning: v.reasoning.slice(0, 400),
+        error: v.error,
+      })) ?? null,
   });
 
   const checkText = allFindings.length > 0

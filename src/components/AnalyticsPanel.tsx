@@ -37,6 +37,28 @@ export default function AnalyticsPanel() {
     return <p className="text-sm text-secondary">Loading analytics…</p>;
   }
 
+  // Empty state: don't show a wall of zero-valued cards. A user with zero
+  // reviews yet learns nothing from "0 total reviews / — avg risk / 0
+  // findings" — they need a next step, not a placeholder dashboard.
+  if (data.totalReviews === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-white/50 p-10 text-center">
+        <div className="text-lg font-semibold text-foreground">No reviews yet</div>
+        <p className="mx-auto mt-2 max-w-[440px] text-sm text-secondary">
+          Analytics fill in the first time Ratify runs against a pull request. Install the
+          GitHub App on any repository, then open or push to a PR — the review lands
+          within seconds and the numbers here start moving.
+        </p>
+        <a
+          href="/install"
+          className="mt-6 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        >
+          Install the GitHub App
+        </a>
+      </div>
+    );
+  }
+
   const maxDay = Math.max(1, ...data.volumeByDay.map((d) => d.count));
 
   return (
