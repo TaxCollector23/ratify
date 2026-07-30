@@ -4,13 +4,19 @@ import { useState } from "react";
 import DashboardLive from "./DashboardLive";
 import DoctrineViewer from "./DoctrineViewer";
 import AnalyticsPanel from "./AnalyticsPanel";
+import TraceRunsPanel from "./TraceRunsPanel";
 
-type Tab = "reviews" | "doctrine" | "analytics";
+type Tab = "reviews" | "doctrine" | "analytics" | "trace-runs";
 
 const tabs: { id: Tab; label: string; description: string }[] = [
   { id: "reviews", label: "Reviews", description: "Live pull request reviews." },
   { id: "doctrine", label: "Doctrine", description: "Rules mined from this repo's history." },
   { id: "analytics", label: "Analytics", description: "Findings, risk, and volume." },
+  {
+    id: "trace-runs",
+    label: "Local Trace runs",
+    description: "Runs synced from your Trace desktop app via the hosted cloud API.",
+  },
 ];
 
 export default function DashboardTabs() {
@@ -39,6 +45,7 @@ export default function DashboardTabs() {
       {active === "reviews" && <DashboardLive />}
       {active === "doctrine" && <DoctrineViewer />}
       {active === "analytics" && <AnalyticsPanel />}
+      {active === "trace-runs" && <TraceRunsPanel />}
     </div>
   );
 }
