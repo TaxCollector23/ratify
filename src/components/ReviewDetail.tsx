@@ -136,6 +136,9 @@ export default function ReviewDetail({ sessionId }: { sessionId: string }) {
         </div>
       </div>
 
+      {/* Panel verdict (from evidence_generated timeline event) */}
+      <PanelVerdict timeline={timeline} />
+
       {/* Findings */}
       <h2 className="text-xl font-semibold mb-4">Findings</h2>
       <div className="space-y-3 mb-12">
@@ -163,6 +166,86 @@ export default function ReviewDetail({ sessionId }: { sessionId: string }) {
           timeline.map((e) => <TimelineRow key={e.id} event={e} />)
         )}
       </ol>
+    </div>
+  );
+}
+
+// Renders the 3-LLM consensus verdict block: overall decision, blended
+// confidence, and each model's individual vote with its reasoning. The
+// data ships in the `evidence_generated` timeline event so we don't
+// need a separate fetch or DB schema change.
+interface PanelVote {
+  model: string;
+  provider: string;
+  decision: string;
+  confidence: number;
+  reasoning: string;
+  error: string | null;
+}
+
+const VERDICT_STYLES: Record<string, string> = {
+  block: "bg-danger/10 text-danger border-danger/30",
+  require_approval: "bg-warning/10 text-warning border-warning/30",
+  warn: "bg-warning/10 text-warning border-warning/30",
+  allow: "bg-success/10 text-success border-success/30",
+};
+
+function PanelVerdict({ timeline }: { timeline: TimelineEvent[] }) {
+  const stage = timeline.find((e) => e.stage === "evidence_generated");
+  const detail = (stage?.detail ?? {}) as {
+    panelVerdict?: string | null;
+    panelConfidence?: number | null;
+    panelVotes?: PanelVote[] | null;
+  };
+
+  if (!detail.panelVerdict || !detail.panelVotes || detail.panelVotes.length === 0) {
+    return null;
+  }
+
+  const badgeClass = VERDICT_STYLES[detail.panelVerdict] ?? VERDICT_STYLES.warn;
+  const successful = detail.panelVotes.filter((v) => !v.error);
+  const failed = detail.panelVotes.filter((v) => v.error);
+
+  return (
+    <div className="mb-10">
+      <h2 className="text-xl font-semibold mb-4">Panel verdict</h2>
+      <p className="text-sm text-secondary mb-4">
+        Three independent models graded this PR in parallel. Consensus and per-model reasoning below.
+      </p>
+      <div className="rounded-2xl border border-border bg-white p-6">
+        <div className="flex flex-wrap items-baseline gap-4 mb-6">
+          <span className={`rounded-full border px-3 py-1 text-sm font-semibold uppercase tracking-wide ${badgeClass}`}>
+            {detail.panelVerdict.replace(/_/g, " ")}
+          </span>
+          {typeof detail.panelConfidence === "number" && (
+            <span className="text-sm text-secondary">
+              {Math.round(detail.panelConfidence * 100)}% blended confidence
+            </span>
+          )}
+          <span className="text-sm text-secondary">
+            {successful.length}/{detail.panelVotes.length} reviewers responded
+          </span>
+        </div>
+
+        <ul className="divide-y divide-border">
+          {successful.map((v, i) => (
+            <li key={i} className="py-4 first:pt-0 last:pb-0">
+              <div className="mb-1 flex items-baseline justify-between gap-4">
+                <div className="text-sm font-medium text-foreground">{v.model}</div>
+                <div className="text-xs text-secondary">
+                  voted <span className="font-semibold">{v.decision.replace(/_/g, " ")}</span> · {Math.round(v.confidence * 100)}%
+                </div>
+              </div>
+              <p className="text-sm text-secondary leading-relaxed">{v.reasoning || "—"}</p>
+            </li>
+          ))}
+          {failed.map((v, i) => (
+            <li key={`err-${i}`} className="py-4 text-xs text-muted">
+              <span className="font-medium">{v.model}</span>: unavailable ({v.error?.slice(0, 100)})
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
