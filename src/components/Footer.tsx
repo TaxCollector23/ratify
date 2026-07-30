@@ -15,6 +15,13 @@ const footerColumns = [
     title: "GitHub",
     links: [{ label: "Repository", href: "https://github.com/taxcollector23/ratify", external: true }],
   },
+  {
+    title: "Trace",
+    links: [
+      { label: "Trace (local)", href: "https://github.com/taxcollector23/trace", external: true },
+      { label: "Trace landing", href: "https://landing-one-hazel-88.vercel.app/", external: true },
+    ],
+  },
 ];
 
 export default function Footer() {
@@ -26,11 +33,11 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/favicon.svg" alt="Ratify" width={24} height={24} className="rounded-md" />
-              <span className="text-sm font-semibold text-foreground">Ratify</span>
+              <img src="/favicon.svg" alt="Trace Ratification" width={24} height={24} className="rounded-md" />
+              <span className="text-sm font-semibold text-foreground">Trace Ratification</span>
             </div>
             <p className="text-xs text-secondary leading-relaxed max-w-[220px]">
-              Engineering standards, made executable.
+              Grade every PR against your team&apos;s doctrine. Part of Trace.
             </p>
           </div>
 
@@ -58,7 +65,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-xs text-muted">&copy; 2026 Ratify. All rights reserved.</span>
+          <span className="text-xs text-muted">&copy; 2026 Trace Ratification. All rights reserved.</span>
           <div className="flex items-center gap-6">
             <a href="/privacy" className="text-xs text-secondary hover:text-foreground transition-colors">
               Privacy

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ratify - Engineering Standards, Made Executable",
-  description: "Ratify continuously reviews every pull request against your team's engineering doctrine before it reaches production.",
+  title: "Trace Ratification — Grade every PR against your team's doctrine",
+  description: "Trace Ratification continuously grades every pull request against your team's engineering doctrine using a 3-LLM consensus panel, before it reaches production. Part of Trace.",
   icons: {
     icon: "/favicon.svg",
   },
