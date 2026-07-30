@@ -1,0 +1,272 @@
+{
+  "generatedAt": "2026-07-30T03:30:36.658Z",
+  "totalPrs": 14,
+  "totalPolicyFindings": 4,
+  "totalLlmFindings": 7,
+  "avgPolicyMs": 1,
+  "avgLlmMs": 18159,
+  "ruleFireFrequency": {
+    "large-single-file-change": 3,
+    "dependency-change-detection": 1
+  },
+  "rows": [
+    {
+      "pr": {
+        "owner": "vercel",
+        "repo": "next.js",
+        "number": 96360,
+        "expected": "docs-guide-update"
+      },
+      "title": "Update PWA guide with enhanced offline support details and example links for serwist",
+      "filesFetched": 1,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 1,
+      "llmSummary": "The PR appears to fix a truncated Serwist example URL in the PWA guide's offline support section. The diff shows only the removal of the old line with a cut-off link; the corresponding addition is not visible in the provided diff but the li",
+      "llmError": null,
+      "policyMs": 1,
+      "llmMs": 10917,
+      "totalMs": 11797
+    },
+    {
+      "pr": {
+        "owner": "vercel",
+        "repo": "next.js",
+        "number": 96113,
+        "expected": "behavior-change"
+      },
+      "title": "[fragment-scroll] Stop blurring on navigations",
+      "filesFetched": 11,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 1,
+      "llmSummary": "The PR intentionally removes the blur-on-navigation behavior in the new scroll handler, leaving focus untouched during navigations. Tests are updated to verify focus remains on the triggering element (e.g., clicked link or input) rather tha",
+      "llmError": null,
+      "policyMs": 3,
+      "llmMs": 8486,
+      "totalMs": 9158
+    },
+    {
+      "pr": {
+        "owner": "vercel",
+        "repo": "next.js",
+        "number": 96364,
+        "expected": "rendering-fix"
+      },
+      "title": "Fix PPR rendering for configured HTML bots",
+      "filesFetched": 6,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 2,
+      "llmSummary": "The PR modifies PPR rendering logic for configured HTML-limited bots, changing behavior so they may stream after metadata resolves instead of always forcing full dynamic renders. However, the new test expects configured bots to receive full",
+      "llmError": null,
+      "policyMs": 1,
+      "llmMs": 26942,
+      "totalMs": 27616
+    },
+    {
+      "pr": {
+        "owner": "prisma",
+        "repo": "prisma",
+        "number": 29836,
+        "expected": "internal-refactor"
+      },
+      "title": "fix(migrate,cli): import from @prisma/internals's public entry, not its src/",
+      "filesFetched": 27,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "This PR refactors imports to use @prisma/internals' public entry point instead of internal src/ paths, which is a correct architectural improvement that respects module boundaries and improves maintainability.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 3397,
+      "totalMs": 4339
+    },
+    {
+      "pr": {
+        "owner": "prisma",
+        "repo": "prisma",
+        "number": 29841,
+        "expected": "ci-config-removal"
+      },
+      "title": "ci: drop the v7-release.yml registration stub",
+      "filesFetched": 1,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "The PR removes a workflow registration stub used to maintain dispatchable workflows for the v7 branch.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 5103,
+      "totalMs": 5738
+    },
+    {
+      "pr": {
+        "owner": "prisma",
+        "repo": "prisma",
+        "number": 29840,
+        "expected": "ci-config-rename"
+      },
+      "title": "ci: rename the release workflow to publish.yml",
+      "filesFetched": 6,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "This PR cleanly renames the release workflow from v7-release.yml to publish.yml and updates all references across workflow configurations and documentation. The changes are purely mechanical with no functional alterations beyond the rename.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 13331,
+      "totalMs": 14106
+    },
+    {
+      "pr": {
+        "owner": "tailwindlabs",
+        "repo": "tailwindcss",
+        "number": 20124,
+        "expected": "css-nesting-feature"
+      },
+      "title": "Handle CSS nesting natively",
+      "filesFetched": 19,
+      "policyFindings": 2,
+      "policyFindingKeys": [
+        "large-single-file-change",
+        "large-single-file-change"
+      ],
+      "llmFindings": 3,
+      "llmSummary": "This PR implements native CSS nesting support in Tailwind's core AST, removing dependency on Lightning CSS for nesting handling. The changes are extensive and include selector parser enhancements, AST optimization updates, and widespread te",
+      "llmError": null,
+      "policyMs": 4,
+      "llmMs": 22121,
+      "totalMs": 22952
+    },
+    {
+      "pr": {
+        "owner": "tailwindlabs",
+        "repo": "tailwindcss",
+        "number": 20356,
+        "expected": "symlink-fix"
+      },
+      "title": "Fix changes to symlinked files outside of the project works",
+      "filesFetched": 4,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "This PR fixes watch mode detection for symlinked @source files by adding lazy canonicalization of walked paths to compare against already-canonicalized changed files. The implementation is correct, well-tested with both unit and integration",
+      "llmError": null,
+      "policyMs": 1,
+      "llmMs": 9430,
+      "totalMs": 10236
+    },
+    {
+      "pr": {
+        "owner": "trpc",
+        "repo": "trpc",
+        "number": 7448,
+        "expected": "cache-fix"
+      },
+      "title": "fix(upgrade): clear the query cache on every fixture render",
+      "filesFetched": 2,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "The PR fixes test flakiness by ensuring query cache is cleared between fixture renders and waiting for in-flight mutations to settle before cleanup. Changes are confined to test infrastructure and improve test isolation.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 20618,
+      "totalMs": 21395
+    },
+    {
+      "pr": {
+        "owner": "trpc",
+        "repo": "trpc",
+        "number": 7390,
+        "expected": "abort-fix"
+      },
+      "title": "fix(client): abort JSONL stream on httpBatchStreamLink unsubscribe",
+      "filesFetched": 2,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "The PR correctly implements aborting the fetch request when the httpBatchStreamLink subscription is unsubscribed, using an AbortController and a raced signal. A test verifies the behavior.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 25909,
+      "totalMs": 26727
+    },
+    {
+      "pr": {
+        "owner": "biomejs",
+        "repo": "biome",
+        "number": 11115,
+        "expected": "prose-wrap-formatter"
+      },
+      "title": "feat(fmt/md): prose-wrap formatting for markdown",
+      "filesFetched": 21,
+      "policyFindings": 2,
+      "policyFindingKeys": [
+        "dependency-change-detection",
+        "large-single-file-change"
+      ],
+      "llmFindings": 0,
+      "llmSummary": "The PR introduces prose-wrap formatting for Markdown, adding a new configuration option and extensive changes to the formatter logic. No critical issues detected beyond the large file change already noted.",
+      "llmError": null,
+      "policyMs": 2,
+      "llmMs": 23252,
+      "totalMs": 24102
+    },
+    {
+      "pr": {
+        "owner": "biomejs",
+        "repo": "biome",
+        "number": 11105,
+        "expected": "quick-fix-refinement"
+      },
+      "title": null,
+      "filesFetched": 0,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": null,
+      "llmSummary": null,
+      "llmError": "fetch: TypeError: fetch failed",
+      "policyMs": 0,
+      "llmMs": null,
+      "totalMs": 4593
+    },
+    {
+      "pr": {
+        "owner": "denoland",
+        "repo": "deno",
+        "number": 36218,
+        "expected": "cgroup-guard"
+      },
+      "title": "fix(ext/node): gate constrained memory cgroup reads",
+      "filesFetched": 2,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": 0,
+      "llmSummary": "The PR correctly adds a permission check for systemMemoryInfo when reading cgroup memory limits on Linux/Android, and updates tests to verify the permission requirement. No issues found.",
+      "llmError": null,
+      "policyMs": 0,
+      "llmMs": 48401,
+      "totalMs": 50926
+    },
+    {
+      "pr": {
+        "owner": "denoland",
+        "repo": "deno",
+        "number": 36312,
+        "expected": "unstable-flag-wiring"
+      },
+      "title": null,
+      "filesFetched": 0,
+      "policyFindings": 0,
+      "policyFindingKeys": [],
+      "llmFindings": null,
+      "llmSummary": null,
+      "llmError": "fetch: TypeError: fetch failed",
+      "policyMs": 0,
+      "llmMs": null,
+      "totalMs": 4616
+    }
+  ]
+}

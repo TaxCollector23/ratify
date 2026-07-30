@@ -1,0 +1,19 @@
+{
+  "description": "Real merged pull requests from public repositories used as Ratify's evaluation set. All PRs are confirmed merged. Extend by adding to the `prs` array — the eval harness picks them up on the next run.",
+  "prs": [
+    { "owner": "vercel", "repo": "next.js", "number": 96360, "expected": "docs-guide-update" },
+    { "owner": "vercel", "repo": "next.js", "number": 96113, "expected": "behavior-change" },
+    { "owner": "vercel", "repo": "next.js", "number": 96364, "expected": "rendering-fix" },
+    { "owner": "prisma", "repo": "prisma", "number": 29836, "expected": "internal-refactor" },
+    { "owner": "prisma", "repo": "prisma", "number": 29841, "expected": "ci-config-removal" },
+    { "owner": "prisma", "repo": "prisma", "number": 29840, "expected": "ci-config-rename" },
+    { "owner": "tailwindlabs", "repo": "tailwindcss", "number": 20124, "expected": "css-nesting-feature" },
+    { "owner": "tailwindlabs", "repo": "tailwindcss", "number": 20356, "expected": "symlink-fix" },
+    { "owner": "trpc", "repo": "trpc", "number": 7448, "expected": "cache-fix" },
+    { "owner": "trpc", "repo": "trpc", "number": 7390, "expected": "abort-fix" },
+    { "owner": "biomejs", "repo": "biome", "number": 11115, "expected": "prose-wrap-formatter" },
+    { "owner": "biomejs", "repo": "biome", "number": 11105, "expected": "quick-fix-refinement" },
+    { "owner": "denoland", "repo": "deno", "number": 36218, "expected": "cgroup-guard" },
+    { "owner": "denoland", "repo": "deno", "number": 36312, "expected": "unstable-flag-wiring" }
+  ]
+}
