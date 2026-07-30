@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
-import { findings, findingFeedback } from "@/lib/db/schema";
+import { findings, findingFeedback, reviewSessions, pullRequests, repositories, installations } from "@/lib/db/schema";
 import { getCurrentSession } from "@/lib/auth/session";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -45,10 +45,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     );
   }
 
-  const [existingFinding] = await db.select().from(findings).where(eq(findings.id, findingId));
-  if (!existingFinding) {
+  // Fetch the finding + confirm it belongs to an installation the caller
+  // owns. Prevents someone from writing feedback to another org's findings.
+  const [row] = await db
+    .select({ finding: findings, ownerFirebaseUid: installations.ownerFirebaseUid })
+    .from(findings)
+    .innerJoin(reviewSessions, eq(findings.reviewSessionId, reviewSessions.id))
+    .innerJoin(pullRequests, eq(reviewSessions.pullRequestId, pullRequests.id))
+    .innerJoin(repositories, eq(pullRequests.repositoryId, repositories.id))
+    .innerJoin(installations, eq(repositories.installationId, installations.id))
+    .where(and(eq(findings.id, findingId), eq(installations.ownerFirebaseUid, session.uid)));
+  if (!row) {
     return NextResponse.json({ error: "Finding not found." }, { status: 404 });
   }
+  const existingFinding = row.finding;
 
   // Upsert the feedback row.
   await db

@@ -10,9 +10,14 @@
     --background: #ffffff;
     --foreground: #111111;
     --primary: #2563eb;
+    --primary-hover: #1d4ed8;
     --secondary: #5f6368;
+    --muted: #9ca3af;
     --border: #ececec;
     --surface: #fafafa;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
   }
   * { box-sizing: border-box; }
   body {
@@ -20,63 +25,107 @@
     background: var(--background);
     color: var(--foreground);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
+    line-height: 1.65;
+    font-size: 16px;
   }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { color: var(--primary-hover); }
   header {
     border-bottom: 1px solid var(--border);
-    padding: 20px 32px;
+    padding: 18px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    z-index: 10;
   }
   header a.brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    text-decoration: none;
+    gap: 10px;
     color: var(--foreground);
     font-weight: 600;
     font-size: 15px;
   }
-  header .logo {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    background: var(--primary);
-  }
+  header a.brand img { width: 22px; height: 22px; border-radius: 5px; }
   header nav a {
     color: var(--secondary);
-    text-decoration: none;
     font-size: 14px;
     margin-left: 24px;
   }
   header nav a:hover { color: var(--foreground); }
-  main {
-    max-width: 880px;
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 64px 32px 120px;
+    gap: 48px;
+    padding: 48px 32px 120px;
   }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; padding: 32px 20px 80px; }
+    aside { position: static; }
+  }
+  aside {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  aside h4 {
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin: 20px 0 8px;
+  }
+  aside a {
+    display: block;
+    color: var(--secondary);
+    font-size: 14px;
+    padding: 4px 0;
+  }
+  aside a:hover { color: var(--foreground); }
+
+  main { min-width: 0; max-width: 800px; }
   h1 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 700;
     font-size: 44px;
     letter-spacing: -0.02em;
-    margin: 0 0 16px;
+    margin: 0 0 12px;
+    line-height: 1.05;
   }
   h2 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 700;
     font-size: 26px;
-    margin: 56px 0 16px;
     letter-spacing: -0.01em;
+    margin: 64px 0 16px;
+    padding-top: 16px;
+    scroll-margin-top: 90px;
   }
-  p { color: var(--secondary); margin: 0 0 16px; font-size: 16px; }
+  h3 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 32px 0 10px;
+    scroll-margin-top: 90px;
+  }
+  p { color: var(--secondary); margin: 0 0 16px; }
+  strong { color: var(--foreground); font-weight: 600; }
   code {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 6px;
     font-size: 13px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   pre {
     background: var(--surface);
@@ -85,81 +134,285 @@
     padding: 16px 20px;
     overflow-x: auto;
     font-size: 13px;
+    margin: 0 0 20px;
+    line-height: 1.55;
   }
-  ul { color: var(--secondary); }
+  pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+  }
+  ul { color: var(--secondary); padding-left: 22px; margin: 0 0 16px; }
+  li { margin-bottom: 6px; }
   .card {
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 16px;
+    padding: 20px 22px;
+    margin: 12px 0;
+    background: var(--background);
   }
-  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card h3 { margin: 0 0 6px; font-size: 15px; }
   .card p { margin: 0; font-size: 14px; }
+  .callout {
+    border-left: 3px solid var(--primary);
+    background: rgba(37, 99, 235, 0.04);
+    padding: 16px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .sev-high { color: var(--danger); font-weight: 600; }
+  .sev-med { color: var(--warning); font-weight: 600; }
+  .sev-low { color: var(--muted); }
+
   footer {
     border-top: 1px solid var(--border);
     padding: 32px;
     text-align: center;
-    color: var(--secondary);
+    color: var(--muted);
     font-size: 13px;
   }
 </style>
 </head>
 <body>
 <header>
-  <a class="brand" href="./"><span class="logo"></span> Ratify Docs</a>
+  <a class="brand" href="./"><img src="https://ratify-zeta-dusky.vercel.app/favicon.svg" alt=""/> Ratify Docs</a>
   <nav>
-    <a href="https://ratify-app.vercel.app">Home</a>
-    <a href="https://github.com/taxcollector23/ratify">GitHub</a>
+    <a href="https://ratify-zeta-dusky.vercel.app">Home</a>
+    <a href="https://ratify-zeta-dusky.vercel.app/dashboard">Dashboard</a>
+    <a href="https://ratify-zeta-dusky.vercel.app/install">Install</a>
   </nav>
 </header>
 
+<div class="layout">
+<aside>
+  <h4>Getting started</h4>
+  <a href="#what-is-ratify">What Ratify is</a>
+  <a href="#quickstart">Quickstart</a>
+  <a href="#install-github-app">Installing the GitHub App</a>
+  <a href="#linking-your-account">Linking your account</a>
+
+  <h4>How reviews work</h4>
+  <a href="#pipeline">The review pipeline</a>
+  <a href="#deterministic-checks">Deterministic policy checks</a>
+  <a href="#doctrine">Repository doctrine</a>
+  <a href="#llm-reasoning">Model reasoning</a>
+  <a href="#pr-comment">The GitHub check + PR comment</a>
+
+  <h4>Deployment review</h4>
+  <a href="#deployment-workflow">GitHub Actions workflow</a>
+  <a href="#deployment-events">Deployment webhook events</a>
+
+  <h4>Feedback &amp; calibration</h4>
+  <a href="#feedback">Reacting to findings</a>
+  <a href="#timeline">The pipeline timeline</a>
+
+  <h4>Reference</h4>
+  <a href="#api-webhooks">Webhook events consumed</a>
+  <a href="#api-endpoints">HTTP endpoints</a>
+  <a href="#data-model">Data model</a>
+  <a href="#not-coderabbit">How Ratify differs from generic AI review</a>
+</aside>
+
 <main>
   <h1>Documentation</h1>
-  <p>Ratify turns your repository's engineering standards into executable doctrine, and
-  evaluates every pull request against that doctrine before human review begins.</p>
+  <p>Ratify turns the engineering standards your repository already has &mdash; the ones that live in architecture discussions, PR reviews, and the memory of senior engineers &mdash; into executable doctrine, and evaluates every pull request against that doctrine before a human reviewer gets involved. This document explains how it works, from installation through feedback.</p>
 
-  <h2>How it works</h2>
-  <div class="card">
-    <h3>1. Repository indexing</h3>
-    <p>When Ratify is installed, it clones the repository, parses structure and symbols,
-    builds a dependency graph, and mines merged PRs, review comments, and docs for precedent.</p>
-  </div>
-  <div class="card">
-    <h3>2. Doctrine inference</h3>
-    <p>Recurring patterns in review feedback and repository history are turned into
-    structured, scored doctrine rules — distinguishing hard rules from soft norms.</p>
-  </div>
-  <div class="card">
-    <h3>3. Pull request analysis</h3>
-    <p>On every PR, deterministic policy checks run first. Only after context is assembled
-    does Ratify call a model — to reason over evidence, not to invent it.</p>
-  </div>
-  <div class="card">
-    <h3>4. Evidence-backed findings</h3>
-    <p>Every finding ships with severity, confidence, supporting evidence, and precedent —
-    so reviewers evaluate Ratify's reasoning instead of taking a verdict on faith.</p>
+  <div class="callout">
+    <p><strong>Status:</strong> Ratify is live and reviewing real pull requests. The GitHub App is <a href="https://github.com/apps/ratify-reviews">github.com/apps/ratify-reviews</a>. The public dashboard is at <a href="https://ratify-zeta-dusky.vercel.app/dashboard">ratify-zeta-dusky.vercel.app/dashboard</a>.</p>
   </div>
 
-  <h2>Installing the GitHub App</h2>
-  <p>Ratify installs as a GitHub App scoped to the repositories you choose. It requests
-  read access to code, pull requests, and checks, and write access to checks and PR
-  comments only.</p>
-  <pre><code>1. Go to github.com/apps/ratify (coming soon)
-2. Select the organization and repositories to install on
-3. Ratify begins indexing automatically</code></pre>
+  <h2 id="what-is-ratify">What Ratify is</h2>
+  <p>Ratify is a repository-aware pull request reviewer. It runs three passes on every PR:</p>
+  <ol>
+    <li><strong>Deterministic policy checks.</strong> Fast, cheap, zero hallucination risk. See <a href="#deterministic-checks">the full list</a>.</li>
+    <li><strong>Repository doctrine retrieval.</strong> Pulls in the rules mined from this repository&rsquo;s own history so the reviewer reasons against <em>your</em> standards, not generic best practices.</li>
+    <li><strong>Model reasoning.</strong> A model reads the diff plus the deterministic findings plus the doctrine and returns structured findings with severity, confidence, and a per-finding rationale.</li>
+  </ol>
+  <p>Findings are posted as a GitHub check run and a PR comment, and every stage of the pipeline is recorded in a timeline you can inspect at <code>/dashboard/{sessionId}</code>.</p>
 
-  <h2>Local development (backend)</h2>
-  <p>The backend is a pnpm monorepo. See the
-    <a href="https://github.com/taxcollector23/ratify/tree/main/backend">backend README</a>
-    in the repository for the full architecture, package layout, and setup instructions.</p>
-  <pre><code>cp backend/.env.example backend/.env
-docker compose -f backend/docker-compose.yml up --build</code></pre>
+  <h2 id="quickstart">Quickstart</h2>
+  <p>Three steps, roughly two minutes:</p>
+  <ol>
+    <li><strong>Create a Ratify account</strong> at <a href="https://ratify-zeta-dusky.vercel.app/signin">/signin</a>. Sign in with email + password. During sign-up, enter the GitHub username or organization you&rsquo;ll be installing on &mdash; this is how we auto-link the installation to your Ratify account.</li>
+    <li><strong>Install the GitHub App</strong> at <a href="https://ratify-zeta-dusky.vercel.app/install">/install</a>. Pick the repositories you want reviewed. Read access to code, write access to checks &amp; PR comments &mdash; nothing else.</li>
+    <li><strong>Open a pull request</strong> on any connected repo. Within a few seconds you&rsquo;ll see a Ratify check run appear, plus a PR comment if any findings landed. The full review, evidence, and pipeline timeline are visible at <a href="https://ratify-zeta-dusky.vercel.app/dashboard">/dashboard</a>.</li>
+  </ol>
 
-  <h2>Status</h2>
-  <p>Ratify is pre-launch. This documentation will expand as the GitHub App, API, and
-  self-hosting guides are finalized.</p>
+  <h2 id="install-github-app">Installing the GitHub App</h2>
+  <p>The install button on <a href="https://ratify-zeta-dusky.vercel.app/install">/install</a> takes you to <code>github.com/apps/ratify-reviews/installations/new</code>. There you:</p>
+  <ul>
+    <li>Choose the account (personal or organization) to install on.</li>
+    <li>Choose <strong>All repositories</strong> or <strong>Selected repositories</strong>. You can change this later in your GitHub App settings.</li>
+    <li>Grant the requested permissions.</li>
+  </ul>
+  <p>GitHub calls Ratify&rsquo;s <code>installation</code> webhook the moment you finish; the installation and its repositories are persisted to Ratify&rsquo;s database. If your GitHub username matches the one you gave at sign-up, the installation is auto-linked to your Ratify account and shows up on your dashboard immediately.</p>
+
+  <h2 id="linking-your-account">Linking your account</h2>
+  <p>Auto-linking works when the GitHub account you install on has the same login as the value you typed on the Ratify sign-up form. If they differ (e.g. you signed up as <code>@you</code> but installed on <code>@your-org</code>), sign back in and re-enter the org handle. All unclaimed installations with a matching login link on the next request.</p>
+
+  <h2 id="pipeline">The review pipeline</h2>
+  <p>When GitHub sends a <code>pull_request</code> event, Ratify runs this sequence:</p>
+  <pre><code>webhook_received
+  &rarr; context_retrieved   (fetch changed files from GitHub API)
+  &rarr; policy_checks       (deterministic rules; see below)
+  &rarr; llm_call            (model reasoning over diff + doctrine + policy findings)
+  &rarr; evidence_generated  (score risk, cluster findings)
+  &rarr; published           (create check_run + PR comment)</code></pre>
+  <p>Every stage is timestamped in the <code>review_events</code> table with its duration and stage-specific detail. That entire event log is rendered on the review detail page, so you can see exactly what the pipeline did, how long each step took, and why a finding was raised.</p>
+  <p>Duplicate webhook deliveries (GitHub retries up to 8 times over 24 hours if we&rsquo;re slow) are dropped at insert time by a unique index on <code>(pull_request_id, head_sha)</code> and logged as <code>skipped_duplicate</code>, so you never get two parallel reviews or two PR comments for the same commit.</p>
+
+  <h2 id="deterministic-checks">Deterministic policy checks</h2>
+  <p>These run before any model call. They&rsquo;re fast, high-precision, and give no hallucinations. Adding more rules is the single highest-leverage thing we can do to improve review quality &mdash; every deterministic check is one fewer thing the model has to remember.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Rule key</th><th>Severity</th><th>Fires when</th></tr></thead>
+    <tbody>
+      <tr><td><code>missing-tests-for-payments-paths</code></td><td class="sev-high">high</td><td>A file under a payment/billing/checkout path changed and no test file changed in the same PR.</td></tr>
+      <tr><td><code>secret-in-diff</code></td><td class="sev-high">high</td><td>An added line matches a high-precision pattern for a real secret: AWS keys, GitHub PATs, OpenAI/Anthropic keys, Slack tokens, PEM-encoded private keys, Google API keys.</td></tr>
+      <tr><td><code>removed-test-file</code></td><td class="sev-med">medium</td><td>A file matching the repo&rsquo;s test-path pattern was deleted.</td></tr>
+      <tr><td><code>dependency-change-detection</code></td><td class="sev-med">medium</td><td>A dependency manifest (package.json, pnpm-lock.yaml, requirements.txt, go.mod, Cargo.toml, Gemfile) changed.</td></tr>
+      <tr><td><code>migration-added</code></td><td class="sev-med">medium</td><td>A file under a migrations/ or drizzle/ path was added.</td></tr>
+      <tr><td><code>direct-db-access-in-handler</code></td><td class="sev-med">medium</td><td>A file on an api/handlers/routes/controllers path issues a raw database call in the diff.</td></tr>
+      <tr><td><code>swallowed-catch</code></td><td class="sev-med">medium</td><td>An empty <code>catch(...) {}</code> block was added.</td></tr>
+      <tr><td><code>hardcoded-localhost</code></td><td class="sev-med">medium</td><td>A hardcoded <code>http://localhost</code> or <code>http://127.0.0.1</code> URL was added outside test/doc paths.</td></tr>
+      <tr><td><code>large-single-file-change</code></td><td class="sev-low">low</td><td>A single non-lockfile changed more than 500 lines.</td></tr>
+      <tr><td><code>todo-debug-code</code></td><td class="sev-low">low</td><td>An added line contains TODO, FIXME, console.log, or debugger.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="doctrine">Repository doctrine</h2>
+  <p>Doctrine is the set of rules that describe how <em>this specific repository</em> is meant to be built &mdash; not generic engineering advice. Rules are inferred from patterns in review comments, merged PRs, and repository documentation, and stored as structured, confidence-scored assertions with these attributes:</p>
+  <ul>
+    <li><strong>Rule text.</strong> A short imperative statement (&ldquo;Integration tests are required for payment logic.&rdquo;).</li>
+    <li><strong>Category.</strong> Architecture, testing, documentation, dependencies, observability, etc.</li>
+    <li><strong>Strength.</strong> One of <code>hard-rule</code>, <code>soft-norm</code>, <code>likely-preference</code>.</li>
+    <li><strong>Confidence.</strong> How well-supported the rule is by the mined signal.</li>
+  </ul>
+  <p>Doctrine mining runs asynchronously after installation (so we can respond to the install webhook fast). It re-runs incrementally as new PRs merge. Two repositories never share doctrine unless explicitly configured.</p>
+
+  <h2 id="llm-reasoning">Model reasoning</h2>
+  <p>After deterministic checks and doctrine retrieval, Ratify sends the model a structured prompt containing the diff, the doctrine rules that apply to this repo, and the deterministic findings that already fired. The model returns JSON in a strict schema (summary + array of findings, each with <code>ruleKey</code>, <code>title</code>, <code>description</code>, <code>severity</code>, <code>confidence</code>).</p>
+  <p>The prompt includes an explicit severity rubric so the model doesn&rsquo;t undergrade obvious risks:</p>
+  <ul>
+    <li><strong>High:</strong> removed authentication, secrets committed, SQL injection risk, deletion of payment safeguards, obvious data-loss risk in a migration.</li>
+    <li><strong>Medium:</strong> architectural violation, unapproved external dependency, API contract change without documentation, race conditions, memory leaks.</li>
+    <li><strong>Low:</strong> debug leftovers, minor style/naming, missing JSDoc.</li>
+  </ul>
+  <p>The reasoning call walks a fallback chain (primary large model &rarr; secondary smaller model &rarr; tertiary) so a rate limit on one free provider transparently falls through to the next. Every failure is logged with the specific upstream error, not silently swallowed.</p>
+
+  <h2 id="pr-comment">The GitHub check &amp; PR comment</h2>
+  <p>Every review produces two artifacts on GitHub:</p>
+  <ul>
+    <li><strong>A check run</strong> on the head commit, with conclusion <code>success</code> (no findings), <code>neutral</code> (findings but none high), or <code>failure</code> (at least one high-severity finding). The check run body includes every finding with severity + source + confidence, plus a link back to the full Ratify review.</li>
+    <li><strong>A PR comment</strong> with the risk score, the top three findings in collapsible details blocks, and a linkback to the dashboard for the full timeline. Only posted if findings actually exist &mdash; a clean PR gets a green check with no comment noise.</li>
+  </ul>
+
+  <h2 id="deployment-workflow">GitHub Actions workflow for deployment review</h2>
+  <p>Ratify also reviews GitHub Deployments &mdash; useful if you want to gate production deploys on the same doctrine that gates PRs. The simplest way to opt in: drop this workflow at <code>.github/workflows/ratify-review.yml</code> in your repo.</p>
+  <p><a href="https://ratify-zeta-dusky.vercel.app/workflows/ratify-review.yml">Download the workflow YAML</a>.</p>
+  <p>On every push to <code>main</code>, it creates a GitHub Deployment (via the built-in <code>GITHUB_TOKEN</code>, no external secrets needed). GitHub sends Ratify a <code>deployment</code> webhook; Ratify computes the delta since the last successful deployment to the same environment, runs the full pipeline, and posts a check_run to the deployment&rsquo;s target SHA. Your actual deploy step can wait for that check.</p>
+
+  <h2 id="deployment-events">Deployment webhook events</h2>
+  <p>Ratify handles <code>deployment</code> events with the same pipeline used for pull requests, but with two differences:</p>
+  <ul>
+    <li>The diff is <em>previous successful deployment to this environment &rarr; new target SHA</em>, not <em>base branch &rarr; head branch</em>. If there&rsquo;s no previous deployment, we fall back to the target commit&rsquo;s own diff.</li>
+    <li>The check_run is posted to the deployment&rsquo;s target SHA (which is often <em>main</em> post-merge), so it shows up on the deployment view rather than a PR view.</li>
+  </ul>
+
+  <h2 id="feedback">Reacting to findings</h2>
+  <p>On any finding in the dashboard, you can react with one of four verdicts:</p>
+  <ul>
+    <li><strong>👍 Correct</strong> &mdash; the finding was on-target.</li>
+    <li><strong>👎 False positive</strong> &mdash; the finding was wrong; the code is fine.</li>
+    <li><strong>Exception here</strong> &mdash; the rule generally applies but this specific case is an intentional exception.</li>
+    <li><strong>Needs more context</strong> &mdash; the finding was ambiguous and Ratify should have said more.</li>
+  </ul>
+  <p>Each verdict adjusts the finding&rsquo;s confidence score (gently, clamped between 0.2 and 0.98) so future findings citing the same rule inherit a calibrated prior. One user&rsquo;s disagreement doesn&rsquo;t flip a rule off &mdash; corroboration across reviewers matters.</p>
+
+  <h2 id="timeline">The pipeline timeline</h2>
+  <p>Every review at <code>/dashboard/{id}</code> shows a full timeline: which stage ran, when, how long it took, and stage-specific detail (raw doctrine IDs retrieved, model finding count, deterministic rule keys that fired, etc.). This is what makes Ratify not-a-black-box: nothing in the review pipeline runs without leaving an inspectable audit row.</p>
+
+  <h2 id="api-webhooks">Webhook events consumed</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Event</th><th>Actions</th><th>What Ratify does</th></tr></thead>
+    <tbody>
+      <tr><td><code>installation</code></td><td>created, new_permissions_accepted</td><td>Persist the installation + all its repositories. Attempt to auto-link to a matching Ratify user by GitHub login.</td></tr>
+      <tr><td><code>installation_repositories</code></td><td>added, removed</td><td>Add or remove repositories from an existing installation.</td></tr>
+      <tr><td><code>pull_request</code></td><td>opened, synchronize, reopened</td><td>Run the full review pipeline against the PR&rsquo;s head SHA.</td></tr>
+      <tr><td><code>deployment</code></td><td>created</td><td>Run the pipeline against the deployment&rsquo;s target SHA; post a check_run.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="api-endpoints">HTTP endpoints</h2>
+  <p>Ratify&rsquo;s API is intentionally small. Authentication is via a signed httpOnly session cookie set by <code>POST /api/session-login</code> after Firebase Auth completes.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Method &amp; path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /api/webhooks/github</code></td><td>GitHub App webhook receiver. Signature-verified.</td></tr>
+      <tr><td><code>POST /api/session-login</code></td><td>Exchange a Firebase ID token for a Ratify session cookie.</td></tr>
+      <tr><td><code>POST /api/session-logout</code></td><td>Clear the session cookie.</td></tr>
+      <tr><td><code>GET /api/me</code></td><td>Current session + install-linked status.</td></tr>
+      <tr><td><code>GET /api/reviews</code></td><td>List the current user&rsquo;s review sessions (auth-filtered by installation ownership).</td></tr>
+      <tr><td><code>GET /api/reviews/{id}</code></td><td>Full review detail: session, findings, timeline, current user&rsquo;s feedback.</td></tr>
+      <tr><td><code>POST /api/findings/{id}/feedback</code></td><td>Record a verdict on a finding.</td></tr>
+      <tr><td><code>GET /api/health/all</code></td><td>Diagnostics: DB + LLM chain + GitHub App JWT + Firebase project.</td></tr>
+      <tr><td><code>GET /api/health/llm</code></td><td>Diagnostics: single LLM roundtrip.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="data-model">Data model</h2>
+  <p>The primary tables:</p>
+  <ul>
+    <li><code>users</code> &mdash; Ratify accounts (Firebase UID, email, GitHub login).</li>
+    <li><code>organizations</code>, <code>installations</code>, <code>repositories</code> &mdash; GitHub-side entities Ratify tracks. Every installation is org-scoped and can be owned by a Firebase UID for dashboard visibility.</li>
+    <li><code>pull_requests</code>, <code>review_sessions</code>, <code>findings</code> &mdash; the review record. Unique index on <code>(pull_request_id, head_sha)</code> makes review sessions idempotent under webhook retries.</li>
+    <li><code>review_events</code> &mdash; the pipeline timeline (webhook_received, policy_checks, context_retrieved, llm_call, evidence_generated, published, error, skipped_duplicate).</li>
+    <li><code>finding_feedback</code> &mdash; user verdicts on individual findings, uniquely keyed per (finding, user).</li>
+    <li><code>doctrine_rules</code>, <code>doctrine_mining_runs</code> &mdash; the per-repository rule store and mining audit log.</li>
+    <li><code>webhook_events</code> &mdash; every GitHub delivery Ratify has received, keyed by GitHub&rsquo;s <code>X-GitHub-Delivery</code> for dedupe.</li>
+  </ul>
+
+  <h2 id="not-coderabbit">How Ratify differs from generic AI review</h2>
+  <p>Tools like CodeRabbit run an LLM over every diff and post inline comments. Ratify is a different shape of product:</p>
+  <ul>
+    <li><strong>Deterministic first, model second.</strong> Every finding starts with a real rule &mdash; not the model&rsquo;s free-form opinion. The model reasons over evidence the backend already gathered, not the raw diff alone.</li>
+    <li><strong>Repository doctrine, not generic best practices.</strong> Two identical PRs opened on different repos can (and should) get different reviews, because the rules are inferred from each repo&rsquo;s own history.</li>
+    <li><strong>Idempotent pipelines, not fire-and-forget calls.</strong> Duplicate webhook deliveries don&rsquo;t produce duplicate reviews or duplicate PR comments. Every stage of the pipeline is auditable.</li>
+    <li><strong>Feedback closes the loop.</strong> Marking a finding a false positive lowers the confidence of future findings from the same rule &mdash; the tool actually gets more accurate for your repo over time.</li>
+    <li><strong>Deployment gating.</strong> Not just PRs; Ratify also reviews GitHub Deployments so you can hold production releases to the same standards.</li>
+    <li><strong>Full transparency.</strong> Every review has an inspectable timeline showing which stages ran, in what order, with what duration and detail. Nothing happens in a black box.</li>
+  </ul>
 </main>
+</div>
 
-<footer>&copy; 2026 Ratify</footer>
+<footer>&copy; 2026 Ratify &middot; <a href="https://github.com/taxcollector23/ratify">Source</a> &middot; <a href="https://ratify-zeta-dusky.vercel.app">Live app</a></footer>
 </body>
 </html>
