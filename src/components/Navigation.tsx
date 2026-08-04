@@ -11,6 +11,7 @@ const DOCS_URL = "https://taxcollector23.github.io/ratify/";
 
 const navLinks = [
   { label: "Product", href: "/#product" },
+  { label: "Review snippet", href: "/review" },
   { label: "Docs", href: DOCS_URL, external: true },
   { label: "Pricing", href: "/pricing" },
   { label: "Benchmarks", href: "/benchmarks" },

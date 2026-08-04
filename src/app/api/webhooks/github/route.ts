@@ -20,6 +20,7 @@ import { getPullRequestFiles, createCheckRun, createIssueComment } from "@/lib/g
 import { compareCommits, fetchCommitFiles, fetchPreviousDeployment } from "@/lib/github/deployments";
 import { recordStage, timeStage } from "@/lib/review/timeline";
 import { runPolicyChecks } from "@/lib/review/policy-checks";
+import { runAstAnalysis } from "@/lib/review/ast-analysis";
 import { runLlmReasoning } from "@/lib/review/llm-reason";
 
 export async function POST(req: NextRequest) {
@@ -250,8 +251,12 @@ async function handlePullRequest(payload: GhPayload) {
   const policyFindings = await timeStage(
     session.id,
     "policy_checks",
-    async () => runPolicyChecks(files),
-    (result) => ({ findingCount: result.length, ruleKeys: result.map((f) => f.ruleKey) }),
+    async () => [...runPolicyChecks(files), ...runAstAnalysis(files)],
+    (result) => ({
+      findingCount: result.length,
+      ruleKeys: result.map((f) => f.ruleKey),
+      astFindings: result.filter((f) => f.ruleKey.startsWith("ast-")).length,
+    }),
   );
 
   // Pull doctrine rules for this repo (fall back to installation-wide) so the
@@ -486,7 +491,7 @@ async function handleDeployment(payload: GhPayload) {
     return;
   }
 
-  const policyFindings = runPolicyChecks(files);
+  const policyFindings = [...runPolicyChecks(files), ...runAstAnalysis(files)];
 
   const rulesForRepo = await db
     .select({
